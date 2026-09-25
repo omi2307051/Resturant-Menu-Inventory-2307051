@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.restaurant.inventory.controller.StaffController">
+    <padding>
+        <Insets top="12" right="12" bottom="8" left="12"/>
+    </padding>
+
+    <!-- ============ LEFT: registration form ============ -->
+    <left>
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" prefWidth="370">
+            <content>
+                <VBox spacing="9">
+                    <padding>
+                        <Insets top="4" right="14" bottom="10" left="4"/>
+                    </padding>
+
+                    <!-- ToggleGroups: only ONE RadioButton of a group can be selected -->
+                    <fx:define>
+                        <ToggleGroup fx:id="genderGroup"/>
+                        <ToggleGroup fx:id="skillGroup"/>
+                    </fx:define>
+
+                    <Label text="Register a staff member" styleClass="section-title"/>
+
+                    <Label text="Name" styleClass="field-label"/>
+                    <TextField fx:id="nameField" promptText="Full name"/>
+
+                    <Label text="Gender (RadioButton)" styleClass="field-label"/>
+                    <HBox spacing="14">
+                        <RadioButton text="Male" toggleGroup="$genderGroup"/>
+                        <RadioButton text="Female" toggleGroup="$genderGroup"/>
+                        <RadioButton text="Other" toggleGroup="$genderGroup"/>
+                    </HBox>
+                    <Label fx:id="genderLabel" styleClass="info-label"/>
+
+                    <Label text="Kitchen skill level (ToggleGroup)" styleClass="field-label"/>
+                    <HBox spacing="14">
+                        <RadioButton fx:id="beginnerRadio" text="Beginner" toggleGroup="$skillGroup"/>
+                        <RadioButton text="Intermediate" toggleGroup="$skillGroup"/>
+                        <RadioButton text="Expert" toggleGroup="$skillGroup"/>
+                    </HBox>
+
+                    <Label text="Country (ComboBox)" styleClass="field-label"/>
+                    <ComboBox fx:id="countryCombo" promptText="Select a country" prefWidth="300"/>
+
+                    <Label text="Date of birth (DatePicker)" styleClass="field-label"/>
+                    <DatePicker fx:id="dobPicker" promptText="Pick a date" prefWidth="300"/>
+                    <Label fx:id="dobLabel" styleClass="info-label"/>
+
+                    <Label text="Hobbies (CheckBox)" styleClass="field-label"/>
+                    <HBox spacing="14">
+                        <CheckBox fx:id="readingCheck" text="Reading"/>
+                        <CheckBox fx:id="gamingCheck" text="Gaming"/>
+                        <CheckBox fx:id="travelingCheck" text="Traveling"/>
+                    </HBox>
+                    <Label fx:id="hobbiesLabel" styleClass="info-label" wrapText="true"/>
+
+                    <Label text="Password (PasswordField)" styleClass="field-label"/>
+                    <HBox spacing="6" alignment="CENTER_LEFT">
+                        <StackPane HBox.hgrow="ALWAYS">
+                            <PasswordField fx:id="passwordField" promptText="At least 4 characters"/>
+                            <TextField fx:id="passwordPlainField" promptText="At least 4 characters"
+                                       visible="false" managed="false"/>
+                        </StackPane>
+                        <Button fx:id="showPasswordButton" text="Show" onAction="#onTogglePassword"/>
+                    </HBox>
+
+                    <Label text="Photo (FileChooser + ImageView)" styleClass="field-label"/>
+                    <HBox spacing="12" alignment="CENTER_LEFT">
+                        <StackPane styleClass="photo-frame" minWidth="92" minHeight="92" prefWidth="92" prefHeight="92"
+                                   maxWidth="92" maxHeight="92">
+                            <ImageView fx:id="photoView" fitWidth="90" fitHeight="90" preserveRatio="true"/>
+                        </StackPane>
+                        <VBox spacing="6">
+                            <Button text="Browse..." onAction="#onBrowsePhoto"/>
+                            <Label fx:id="photoNameLabel" wrapText="true" maxWidth="180"/>
+                        </VBox>
+                    </HBox>
+
+                    <Button text="Submit" styleClass="primary-button" onAction="#onSubmit"/>
+                    <Label fx:id="formMessageLabel" styleClass="info-label" wrapText="true"/>
+                </VBox>
+            </content>
+        </ScrollPane>
+    </left>
+
+    <!-- ============ CENTER: staff table ============ -->
+    <center>
+        <VBox spacing="8">
+            <padding>
+                <Insets left="14"/>
+            </padding>
+            <Label text="Staff (TableView + ObservableList of Person)" styleClass="section-title"/>
+            <TableView fx:id="staffTable" VBox.vgrow="ALWAYS">
+                <columns>
+                    <TableColumn fx:id="nameCol" text="Name" prefWidth="140"/>
+                    <TableColumn fx:id="genderCol" text="Gender" prefWidth="70"/>
+                    <TableColumn fx:id="skillCol" text="Skill" prefWidth="95"/>
+                    <TableColumn fx:id="countryCol" text="Country" prefWidth="120"/>
+                    <TableColumn fx:id="dobCol" text="Date of birth" prefWidth="130"/>
+                    <TableColumn fx:id="hobbiesCol" text="Hobbies" prefWidth="140"/>
+                    <TableColumn fx:id="photoCol" text="Photo" prefWidth="90"/>
+                </columns>
+            </TableView>
+            <HBox>
+                <Button text="Remove selected" onAction="#onRemoveStaff"/>
+            </HBox>
+        </VBox>
+    </center>
+</BorderPane>

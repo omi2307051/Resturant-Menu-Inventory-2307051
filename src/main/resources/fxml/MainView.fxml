@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.restaurant.inventory.controller.MainController">
+
+    <top>
+        <VBox>
+            <!-- MENUBAR: File -> New, Open, Exit -->
+            <MenuBar>
+                <menus>
+                    <Menu text="File">
+                        <items>
+                            <MenuItem text="New" onAction="#onNew"/>
+                            <MenuItem text="Open..." onAction="#onOpen"/>
+                            <SeparatorMenuItem/>
+                            <MenuItem text="Exit" onAction="#onExit"/>
+                        </items>
+                    </Menu>
+                </menus>
+            </MenuBar>
+            <Label fx:id="welcomeLabel" styleClass="app-title"/>
+        </VBox>
+    </top>
+
+    <center>
+        <TabPane tabClosingPolicy="UNAVAILABLE">
+            <Tab text="Orders">
+                <fx:include source="OrderView.fxml"/>
+            </Tab>
+            <Tab text="Inventory">
+                <fx:include source="InventoryView.fxml"/>
+            </Tab>
+            <Tab text="Menu">
+                <fx:include source="MenuView.fxml"/>
+            </Tab>
+            <Tab text="Staff">
+                <fx:include source="StaffView.fxml"/>
+            </Tab>
+            <Tab text="Kitchen Tools">
+                <fx:include source="ToolsView.fxml"/>
+            </Tab>
+        </TabPane>
+    </center>
+
+    <bottom>
+        <HBox styleClass="status-bar" spacing="8">
+            <Label text="Stock status:"/>
+            <Label fx:id="statusLabel"/>
+        </HBox>
+    </bottom>
+</BorderPane>

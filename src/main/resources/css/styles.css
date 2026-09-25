@@ -1,0 +1,70 @@
+.root {
+    -fx-font-size: 13px;
+}
+
+/* let the window colour chosen with the ChoiceBox show through the tabs */
+.tab-pane > .tab-content-area {
+    -fx-background-color: transparent;
+}
+.scroll-pane,
+.scroll-pane > .viewport {
+    -fx-background-color: transparent;
+}
+
+.app-title {
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2c3e50;
+    -fx-padding: 8 14 8 14;
+}
+
+.section-title {
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #34495e;
+}
+
+.field-label {
+    -fx-font-weight: bold;
+    -fx-text-fill: #34495e;
+}
+
+.info-label {
+    -fx-text-fill: #2471a3;
+}
+
+.alert-label {
+    -fx-text-fill: #c0392b;
+    -fx-font-weight: bold;
+    -fx-padding: 6 0 0 0;
+}
+
+.status-bar {
+    -fx-padding: 6 14 6 14;
+    -fx-background-color: #ecf0f1;
+    -fx-border-color: #bdc3c7 transparent transparent transparent;
+}
+.status-bar .label {
+    -fx-text-fill: #c0392b;
+    -fx-font-weight: bold;
+}
+
+.primary-button {
+    -fx-background-color: #27ae60;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-padding: 7 18 7 18;
+}
+.primary-button:hover {
+    -fx-background-color: #1e8449;
+}
+
+.photo-frame {
+    -fx-border-color: #95a5a6;
+    -fx-background-color: white;
+}
+
+.dish-details {
+    -fx-font-family: "Monospaced";
+    -fx-font-size: 13px;
+}

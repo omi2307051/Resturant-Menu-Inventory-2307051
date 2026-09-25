@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.restaurant.inventory.controller.OrderController">
+    <padding>
+        <Insets top="12" right="12" bottom="8" left="12"/>
+    </padding>
+
+    <!-- filled from Java code: TextField (Enter key) + Buttons -->
+    <top>
+        <HBox fx:id="quickBar" spacing="10" alignment="CENTER_LEFT">
+            <padding>
+                <Insets bottom="10"/>
+            </padding>
+        </HBox>
+    </top>
+
+    <left>
+        <VBox spacing="6" prefWidth="270">
+            <Label text="Menu (ListView)" styleClass="section-title"/>
+            <ListView fx:id="dishList" VBox.vgrow="ALWAYS"/>
+        </VBox>
+    </left>
+
+    <center>
+        <VBox spacing="8" alignment="TOP_CENTER">
+            <padding>
+                <Insets left="14" right="14"/>
+            </padding>
+            <ImageView fx:id="dishImage" fitWidth="300" fitHeight="190" preserveRatio="true"/>
+            <Button text="Change Image" onAction="#onChangeImage"/>
+            <Label fx:id="selectedDishLabel" styleClass="section-title"/>
+
+            <Label text="Ingredients needed" styleClass="field-label"/>
+            <TableView fx:id="recipeTable" prefHeight="190">
+                <columns>
+                    <TableColumn fx:id="recIngredientCol" text="Ingredient" prefWidth="150"/>
+                    <TableColumn fx:id="recNeededCol" text="Needed" prefWidth="100"/>
+                    <TableColumn fx:id="recInStockCol" text="In stock" prefWidth="100"/>
+                    <TableColumn fx:id="recStatusCol" text="Status" prefWidth="110"/>
+                </columns>
+            </TableView>
+
+            <!-- the "Place Order" Button is added here from Java code -->
+            <HBox fx:id="actionBar" spacing="10" alignment="CENTER_LEFT">
+                <Label text="Quantity (1-10):" styleClass="field-label"/>
+                <Spinner fx:id="qtySpinner" prefWidth="90"/>
+            </HBox>
+
+            <Label fx:id="orderSummaryLabel" wrapText="true"/>
+        </VBox>
+    </center>
+
+    <right>
+        <VBox spacing="6" prefWidth="260">
+            <Label text="Order history" styleClass="section-title"/>
+            <ListView fx:id="historyList" VBox.vgrow="ALWAYS"/>
+        </VBox>
+    </right>
+
+    <bottom>
+        <Label fx:id="stockAlertLabel" styleClass="alert-label" wrapText="true"/>
+    </bottom>
+</BorderPane>

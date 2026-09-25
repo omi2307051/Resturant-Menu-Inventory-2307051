@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<ScrollPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.restaurant.inventory.controller.ToolsController"
+            fitToWidth="true" hbarPolicy="NEVER">
+    <content>
+        <FlowPane hgap="16" vgap="16">
+            <padding>
+                <Insets top="14" right="14" bottom="14" left="14"/>
+            </padding>
+
+            <!-- ChoiceBox -->
+            <TitledPane text="Window colour (ChoiceBox)" collapsible="false" prefWidth="380">
+                <content>
+                    <VBox spacing="8">
+                        <padding>
+                            <Insets top="8" right="8" bottom="8" left="8"/>
+                        </padding>
+                        <Label text="Pick a colour to change the window background:"/>
+                        <ChoiceBox fx:id="themeChoice" prefWidth="160"/>
+                    </VBox>
+                </content>
+            </TitledPane>
+
+            <!-- ColorPicker + Slider -->
+            <TitledPane text="Today's specials board (ColorPicker + Slider)" collapsible="false" prefWidth="380">
+                <content>
+                    <VBox spacing="8">
+                        <padding>
+                            <Insets top="8" right="8" bottom="8" left="8"/>
+                        </padding>
+                        <Label fx:id="specialsLabel" text="Today's Special: Mango Shake"/>
+                        <Label text="Text colour:"/>
+                        <ColorPicker fx:id="textColorPicker" onAction="#onColorPicked"/>
+                        <Label text="Font size:"/>
+                        <Slider fx:id="fontSlider" min="10" max="40" value="18" showTickLabels="true"
+                                showTickMarks="true" majorTickUnit="10"/>
+                        <Label fx:id="fontSizeLabel"/>
+                    </VBox>
+                </content>
+            </TitledPane>
+
+            <!-- ListView of fruits -->
+            <TitledPane text="Fruit of the day (ListView)" collapsible="false" prefWidth="380">
+                <content>
+                    <VBox spacing="8">
+                        <padding>
+                            <Insets top="8" right="8" bottom="8" left="8"/>
+                        </padding>
+                        <ListView fx:id="fruitList" prefHeight="140"/>
+                        <Label fx:id="fruitLabel" styleClass="field-label"/>
+                    </VBox>
+                </content>
+            </TitledPane>
+
+            <!-- TextArea -->
+            <TitledPane text="Kitchen notes (TextArea)" collapsible="false" prefWidth="380">
+                <content>
+                    <VBox spacing="8">
+                        <padding>
+                            <Insets top="8" right="8" bottom="8" left="8"/>
+                        </padding>
+                        <TextArea fx:id="notesArea" promptText="Write a short note for the kitchen team..."
+                                  wrapText="true" prefRowCount="5"/>
+                        <HBox>
+                            <Button text="Clear" onAction="#onClearNotes"/>
+                        </HBox>
+                    </VBox>
+                </content>
+            </TitledPane>
+
+            <!-- Alerts -->
+            <TitledPane text="Alert dialogs" collapsible="false" prefWidth="380">
+                <content>
+                    <VBox spacing="8">
+                        <padding>
+                            <Insets top="8" right="8" bottom="8" left="8"/>
+                        </padding>
+                        <Label text="Click a button to see each type of alert:"/>
+                        <HBox spacing="10">
+                            <Button text="Information" onAction="#onShowInfo"/>
+                            <Button text="Warning" onAction="#onShowWarning"/>
+                            <Button text="Error" onAction="#onShowError"/>
+                        </HBox>
+                    </VBox>
+                </content>
+            </TitledPane>
+        </FlowPane>
+    </content>
+</ScrollPane>

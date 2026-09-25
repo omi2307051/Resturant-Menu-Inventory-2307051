@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.restaurant.inventory.controller.InventoryController">
+    <padding>
+        <Insets top="12" right="12" bottom="8" left="12"/>
+    </padding>
+
+    <top>
+        <VBox spacing="6">
+            <padding>
+                <Insets bottom="8"/>
+            </padding>
+            <Label text="Ingredient stock (TableView + ObservableList)" styleClass="section-title"/>
+            <Label fx:id="stockAlertLabel" styleClass="alert-label" wrapText="true"/>
+        </VBox>
+    </top>
+
+    <center>
+        <TableView fx:id="ingredientTable">
+            <columns>
+                <TableColumn fx:id="nameCol" text="Ingredient" prefWidth="190"/>
+                <TableColumn fx:id="qtyCol" text="In stock" prefWidth="100"/>
+                <TableColumn fx:id="unitCol" text="Unit" prefWidth="80"/>
+                <TableColumn fx:id="minCol" text="Low level" prefWidth="100"/>
+                <TableColumn fx:id="statusCol" text="Status" prefWidth="140"/>
+            </columns>
+        </TableView>
+    </center>
+
+    <right>
+        <VBox spacing="14" prefWidth="320">
+            <padding>
+                <Insets left="14"/>
+            </padding>
+
+            <TitledPane text="Restock" collapsible="false">
+                <content>
+                    <VBox spacing="8">
+                        <padding>
+                            <Insets top="8" right="8" bottom="8" left="8"/>
+                        </padding>
+                        <Label fx:id="selectedIngredientLabel" text="Select an ingredient in the table" wrapText="true"/>
+                        <HBox spacing="8" alignment="CENTER_LEFT">
+                            <TextField fx:id="restockField" promptText="amount to add" prefWidth="130"/>
+                            <Button text="Restock" onAction="#onRestock"/>
+                        </HBox>
+                        <Label fx:id="restockMessageLabel" styleClass="info-label" wrapText="true"/>
+                    </VBox>
+                </content>
+            </TitledPane>
+
+            <TitledPane text="Accumulate (ProgressBar)" collapsible="false">
+                <content>
+                    <VBox spacing="8">
+                        <padding>
+                            <Insets top="8" right="8" bottom="8" left="8"/>
+                        </padding>
+                        <Label text="Enter a number N. Each press adds N to the sum; the bar is full after N presses." wrapText="true"/>
+                        <TextField fx:id="targetField" promptText="e.g. 5"/>
+                        <HBox spacing="8">
+                            <Button text="Accumulate" onAction="#onAccumulate"/>
+                            <Button text="Reset" onAction="#onResetAccumulate"/>
+                        </HBox>
+                        <Label fx:id="sumLabel" styleClass="field-label"/>
+                        <Label fx:id="pressesLabel"/>
+                        <ProgressBar fx:id="progressBar" prefWidth="270" progress="0.0"/>
+                    </VBox>
+                </content>
+            </TitledPane>
+        </VBox>
+    </right>
+</BorderPane>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.restaurant.inventory.controller.MenuController">
+    <padding>
+        <Insets top="12" right="12" bottom="12" left="12"/>
+    </padding>
+
+    <left>
+        <VBox spacing="6" prefWidth="300">
+            <Label text="Menu categories (TreeView)" styleClass="section-title"/>
+            <TreeView fx:id="menuTree" VBox.vgrow="ALWAYS"/>
+        </VBox>
+    </left>
+
+    <center>
+        <VBox spacing="12">
+            <padding>
+                <Insets left="20"/>
+            </padding>
+            <Label fx:id="selectedNodeLabel" styleClass="section-title" wrapText="true"/>
+            <Label fx:id="detailsLabel" styleClass="dish-details" wrapText="true"/>
+        </VBox>
+    </center>
+</BorderPane>
