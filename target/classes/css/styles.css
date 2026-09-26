@@ -1,23 +1,79 @@
+/* =========================================================================
+   Restaurant Menu Inventory - colourful theme
+   Each tab has its own gradient background; each menu category (Starters,
+   Main Course, Foreign, Drinks, Desserts) has its own colour used on list
+   rows, the tree view, the dish image frame and the cart.
+   ========================================================================= */
+
 .root {
     -fx-font-size: 13px;
+    -fx-font-family: "Segoe UI", "Arial", sans-serif;
 }
 
-/* let the window colour chosen with the ChoiceBox show through the tabs */
 .tab-pane > .tab-content-area {
     -fx-background-color: transparent;
 }
 .scroll-pane,
-.scroll-pane > .viewport {
+.scroll-pane > .viewport,
+.transparent-scroll,
+.transparent-scroll > .viewport {
     -fx-background-color: transparent;
 }
 
-.app-title {
-    -fx-font-size: 20px;
+/* ---------------------------------------------------------------- top bar */
+.top-bar {
+    -fx-background-color: linear-gradient(to right, #ff7043, #ffca28);
+}
+.top-bar .menu-bar {
+    -fx-background-color: transparent;
+}
+.top-bar .menu-bar .label {
+    -fx-text-fill: white;
     -fx-font-weight: bold;
-    -fx-text-fill: #2c3e50;
-    -fx-padding: 8 14 8 14;
 }
 
+.app-title {
+    -fx-font-size: 21px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+    -fx-padding: 6 14 10 14;
+}
+
+/* ---------------------------------------------------------- page backgrounds */
+.page-orders {
+    -fx-background-color: linear-gradient(to bottom right, #fff8e1, #ffe0b2);
+}
+.page-inventory {
+    -fx-background-color: linear-gradient(to bottom right, #e0f7fa, #b2dfdb);
+}
+.page-menu {
+    -fx-background-color: linear-gradient(to bottom right, #f3e5f5, #e1bee7);
+}
+.page-staff {
+    -fx-background-color: linear-gradient(to bottom right, #e3f2fd, #bbdefb);
+}
+.page-tools {
+    -fx-background-color: linear-gradient(to bottom right, #fff3e0, #ffccbc);
+}
+.page-tools > .viewport {
+    -fx-background-color: transparent;
+}
+
+/* -------------------------------------------------------------- tab header */
+.tab-pane .tab-header-area .tab {
+    -fx-background-color: linear-gradient(to bottom, #ffffff, #ffe0b2);
+    -fx-background-radius: 10 10 0 0;
+    -fx-padding: 8 16 8 16;
+}
+.tab-pane .tab-header-area .tab:selected {
+    -fx-background-color: linear-gradient(to bottom, #ff9800, #f57c00);
+}
+.tab-pane .tab-header-area .tab:selected .tab-label {
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+
+/* ------------------------------------------------------------- text styles */
 .section-title {
     -fx-font-size: 15px;
     -fx-font-weight: bold;
@@ -39,24 +95,53 @@
     -fx-padding: 6 0 0 0;
 }
 
+.revenue-label {
+    -fx-text-fill: #1e8449;
+    -fx-font-weight: bold;
+    -fx-padding: 4 0 0 0;
+}
+
 .status-bar {
     -fx-padding: 6 14 6 14;
-    -fx-background-color: #ecf0f1;
-    -fx-border-color: #bdc3c7 transparent transparent transparent;
+    -fx-background-color: linear-gradient(to right, #37474f, #263238);
 }
 .status-bar .label {
-    -fx-text-fill: #c0392b;
+    -fx-text-fill: #ffcdd2;
     -fx-font-weight: bold;
 }
 
-.primary-button {
-    -fx-background-color: #27ae60;
+/* ------------------------------------------------------------- discount banner */
+.discount-banner {
+    -fx-background-color: linear-gradient(to right, #ff5252, #ff9800);
     -fx-text-fill: white;
     -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-padding: 9 16 9 16;
+    -fx-background-radius: 10;
+}
+
+/* ------------------------------------------------------------------ buttons */
+.primary-button {
+    -fx-background-color: linear-gradient(to bottom, #2ecc71, #27ae60);
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 6;
     -fx-padding: 7 18 7 18;
 }
 .primary-button:hover {
-    -fx-background-color: #1e8449;
+    -fx-background-color: linear-gradient(to bottom, #27ae60, #1e8449);
+}
+
+.checkout-button {
+    -fx-background-color: linear-gradient(to bottom, #ff9800, #e65100);
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-background-radius: 8;
+    -fx-padding: 9 22 9 22;
+}
+.checkout-button:hover {
+    -fx-background-color: linear-gradient(to bottom, #fb8c00, #bf360c);
 }
 
 .photo-frame {
@@ -65,6 +150,106 @@
 }
 
 .dish-details {
-    -fx-font-family: "Monospaced";
+    -fx-font-family: "Consolas", "Monospaced";
     -fx-font-size: 13px;
+}
+
+/* ---------------------------------------------------------------- cart */
+.cart-pane {
+    -fx-background-color: white;
+}
+.cart-pane > .title {
+    -fx-background-color: linear-gradient(to right, #ffe0b2, #ffcc80);
+    -fx-background-radius: 6 6 0 0;
+}
+.cart-pane > .title > .text {
+    -fx-font-weight: bold;
+    -fx-text-fill: #5d4037;
+}
+.cart-total-label {
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #d84315;
+    -fx-padding: 4 0 0 0;
+}
+
+/* --------------------------------------------------- dish image frame */
+.dish-frame {
+    -fx-background-radius: 16;
+    -fx-border-radius: 16;
+    -fx-border-width: 4;
+    -fx-padding: 8;
+    -fx-background-color: #f5f5f5;
+    -fx-border-color: #bdbdbd;
+}
+.dish-frame.cat-starters  { -fx-background-color: #fff3e0; -fx-border-color: #ff9800; }
+.dish-frame.cat-main      { -fx-background-color: #ffebee; -fx-border-color: #e53935; }
+.dish-frame.cat-foreign   { -fx-background-color: #f3e5f5; -fx-border-color: #8e24aa; }
+.dish-frame.cat-drinks    { -fx-background-color: #e0f7fa; -fx-border-color: #00acc1; }
+.dish-frame.cat-desserts  { -fx-background-color: #fce4ec; -fx-border-color: #ec407a; }
+
+/* ------------------------------------------------- category colours (list rows) */
+.list-cell.cat-starters {
+    -fx-background-color: linear-gradient(to right, #fff8e1, #ffe0b2);
+    -fx-border-color: transparent transparent transparent #ff9800;
+    -fx-border-width: 0 0 0 6;
+    -fx-text-fill: #6d4c00;
+    -fx-font-weight: bold;
+}
+.list-cell.cat-main {
+    -fx-background-color: linear-gradient(to right, #ffebee, #ffcdd2);
+    -fx-border-color: transparent transparent transparent #e53935;
+    -fx-border-width: 0 0 0 6;
+    -fx-text-fill: #7f0000;
+    -fx-font-weight: bold;
+}
+.list-cell.cat-foreign {
+    -fx-background-color: linear-gradient(to right, #f3e5f5, #e1bee7);
+    -fx-border-color: transparent transparent transparent #8e24aa;
+    -fx-border-width: 0 0 0 6;
+    -fx-text-fill: #4a148c;
+    -fx-font-weight: bold;
+}
+.list-cell.cat-drinks {
+    -fx-background-color: linear-gradient(to right, #e0f7fa, #b2ebf2);
+    -fx-border-color: transparent transparent transparent #00acc1;
+    -fx-border-width: 0 0 0 6;
+    -fx-text-fill: #006064;
+    -fx-font-weight: bold;
+}
+.list-cell.cat-desserts {
+    -fx-background-color: linear-gradient(to right, #fce4ec, #f8bbd0);
+    -fx-border-color: transparent transparent transparent #ec407a;
+    -fx-border-width: 0 0 0 6;
+    -fx-text-fill: #880e4f;
+    -fx-font-weight: bold;
+}
+.list-cell.out-of-stock-cell {
+    -fx-background-color: #cfd8dc;
+    -fx-text-fill: #b71c1c;
+    -fx-font-weight: bold;
+    -fx-opacity: 0.75;
+    -fx-border-color: transparent transparent transparent #b71c1c;
+    -fx-border-width: 0 0 0 6;
+}
+
+/* same category colours, used for tree-cell text on the Menu tab */
+.tree-cell.cat-starters  { -fx-text-fill: #e65100; -fx-font-weight: bold; }
+.tree-cell.cat-main      { -fx-text-fill: #c62828; -fx-font-weight: bold; }
+.tree-cell.cat-foreign   { -fx-text-fill: #6a1b9a; -fx-font-weight: bold; }
+.tree-cell.cat-drinks    { -fx-text-fill: #00838f; -fx-font-weight: bold; }
+.tree-cell.cat-desserts  { -fx-text-fill: #ad1457; -fx-font-weight: bold; }
+
+/* ----------------------------------------------------------- table view */
+.table-view {
+    -fx-background-color: white;
+    -fx-background-radius: 8;
+}
+.table-view .column-header-background {
+    -fx-background-color: linear-gradient(to bottom, #607d8b, #455a64);
+    -fx-background-radius: 8 8 0 0;
+}
+.table-view .column-header .label {
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
 }

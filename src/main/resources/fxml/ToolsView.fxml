@@ -6,7 +6,7 @@
 
 <ScrollPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.restaurant.inventory.controller.ToolsController"
-            fitToWidth="true" hbarPolicy="NEVER">
+            fitToWidth="true" hbarPolicy="NEVER" styleClass="page-tools">
     <content>
         <FlowPane hgap="16" vgap="16">
             <padding>

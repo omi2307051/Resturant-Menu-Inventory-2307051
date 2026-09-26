@@ -7,6 +7,7 @@ import com.restaurant.inventory.service.InventoryService;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Label;
+import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 
@@ -26,12 +27,17 @@ public class MenuController implements Initializable {
     @FXML private TreeView<String> menuTree;
     @FXML private Label selectedNodeLabel;
     @FXML private Label detailsLabel;
+    @FXML private Label todaysDiscountLabel;
 
     private final InventoryService service = InventoryService.getInstance();
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        if (todaysDiscountLabel != null) {
+            todaysDiscountLabel.setText("\uD83C\uDF89  " + service.getTodayDiscountText());
+        }
         buildTree();
+        colorizeTree();
 
         selectedNodeLabel.setText("Selected node: (click something in the tree)");
         detailsLabel.setText("");
@@ -64,6 +70,26 @@ public class MenuController implements Initializable {
         menuTree.setRoot(rootItem);
     }
 
+    /** Colours each dish/category node's text using the same category colours as the Orders tab. */
+    private void colorizeTree() {
+        menuTree.setCellFactory(tree -> new TreeCell<>() {
+            @Override
+            protected void updateItem(String value, boolean empty) {
+                super.updateItem(value, empty);
+                getStyleClass().removeAll("cat-starters", "cat-main", "cat-foreign", "cat-drinks", "cat-desserts");
+                if (empty || value == null) {
+                    setText(null);
+                    return;
+                }
+                setText(value);
+                Dish dish = service.findDish(value);
+                if (dish != null) {
+                    getStyleClass().add(Dish.categoryStyleClass(dish.getCategory()));
+                }
+            }
+        });
+    }
+
     private void showNode(TreeItem<String> item) {
         if (item == null) {
             return;
@@ -86,7 +112,18 @@ public class MenuController implements Initializable {
     private String describe(Dish dish) {
         StringBuilder text = new StringBuilder();
         text.append("Category: ").append(dish.getCategory()).append('\n');
-        text.append(String.format("Price: $%.2f%n", dish.getPrice()));
+        if (dish.isChefSpecial()) {
+            text.append("\u2B50 Chef's Special\n");
+        }
+        if (service.hasDiscountToday(dish)) {
+            text.append(String.format("Price: %s  ->  %s  (-%d%% today: %s)%n",
+                    InventoryService.taka(dish.getPrice()),
+                    InventoryService.taka(service.getDiscountedPrice(dish)),
+                    service.getDiscountPercent(dish),
+                    service.getTodayDiscountRule().promoName()));
+        } else {
+            text.append(String.format("Price: %s%n", InventoryService.taka(dish.getPrice())));
+        }
 
         List<String> missing = dish.missingIngredients(1);
         if (missing.isEmpty()) {

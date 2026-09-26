@@ -5,10 +5,15 @@
 <?import javafx.scene.layout.*?>
 
 <BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.restaurant.inventory.controller.MenuController">
+            fx:controller="com.restaurant.inventory.controller.MenuController"
+            styleClass="page-menu">
     <padding>
         <Insets top="12" right="12" bottom="12" left="12"/>
     </padding>
+
+    <top>
+        <Label fx:id="todaysDiscountLabel" styleClass="discount-banner" wrapText="true" maxWidth="Infinity"/>
+    </top>
 
     <left>
         <VBox spacing="6" prefWidth="300">

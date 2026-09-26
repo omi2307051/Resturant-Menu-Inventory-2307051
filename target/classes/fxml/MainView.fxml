@@ -8,7 +8,7 @@
             fx:controller="com.restaurant.inventory.controller.MainController">
 
     <top>
-        <VBox>
+        <VBox styleClass="top-bar">
             <!-- MENUBAR: File -> New, Open, Exit -->
             <MenuBar>
                 <menus>
