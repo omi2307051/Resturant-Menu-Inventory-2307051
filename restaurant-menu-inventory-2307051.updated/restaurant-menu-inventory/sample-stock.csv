@@ -1,0 +1,15 @@
+# Use File -> Open... in the app to load this file.
+# Format: name,quantity,unit   (existing ingredients are updated, new names are added)
+name,quantity,unit
+Beef Patty,20,pcs
+Burger Bun,25,pcs
+Cheese Slice,30,pcs
+Mango,15,pcs
+Orange,30,pcs
+Butter,500,g
+Chicken Wings,30,pcs
+Beef Steak Cut,2000,g
+Sushi Rice,1500,g
+Salmon,900,g
+Ice Cream,1500,g
+Chocolate,700,g
