@@ -1,71 +1,75 @@
 package com.restaurant.inventory.model;
 
-import javafx.beans.property.*;
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.StringBinding;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 
+/**
+ * MODEL: an ingredient kept in the kitchen stock (e.g. "Beef Patty", 20 pcs).
+ */
 public class Ingredient {
-    private final StringProperty name;
-    private final IntegerProperty quantity;
-    private final StringProperty unit;
 
-    public Ingredient(String name, int quantity, String unit) {
-        this.name = new SimpleStringProperty(name);
-        this.quantity = new SimpleIntegerProperty(quantity);
-        this.unit = new SimpleStringProperty(unit);
-    }
+    private final StringProperty name = new SimpleStringProperty();
+    private final StringProperty unit = new SimpleStringProperty();
+    private final DoubleProperty quantity = new SimpleDoubleProperty();
+    private final DoubleProperty minLevel = new SimpleDoubleProperty();
+    private final double defaultQuantity;
 
-    public String getName() {
-        return name.get();
-    }
+    /** "OK", "LOW" or "OUT OF STOCK" - recalculated automatically when quantity changes. */
+    private final StringBinding status;
 
-    public StringProperty nameProperty() {
-        return name;
-    }
-
-    public void setName(String name) {
+    public Ingredient(String name, String unit, double quantity, double minLevel) {
         this.name.set(name);
-    }
-
-    public int getQuantity() {
-        return quantity.get();
-    }
-
-    public IntegerProperty quantityProperty() {
-        return quantity;
-    }
-
-    public void setQuantity(int quantity) {
-        this.quantity.set(quantity);
-    }
-
-    public String getUnit() {
-        return unit.get();
-    }
-
-    public StringProperty unitProperty() {
-        return unit;
-    }
-
-    public void setUnit(String unit) {
         this.unit.set(unit);
+        this.quantity.set(quantity);
+        this.minLevel.set(minLevel);
+        this.defaultQuantity = quantity;
+
+        this.status = Bindings.createStringBinding(() -> {
+            double q = getQuantity();
+            if (q <= 0) return "OUT OF STOCK";
+            if (q <= getMinLevel()) return "LOW";
+            return "OK";
+        }, this.quantity, this.minLevel);
     }
 
-    /**
-     * Returns the default quantity for this ingredient.
-     */
-    public int getDefaultQuantity() {
-        return getQuantity();
+    public String getName() { return name.get(); }
+    public StringProperty nameProperty() { return name; }
+
+    public String getUnit() { return unit.get(); }
+    public StringProperty unitProperty() { return unit; }
+
+    public double getQuantity() { return quantity.get(); }
+    public void setQuantity(double value) { quantity.set(Math.max(0, value)); }
+    public DoubleProperty quantityProperty() { return quantity; }
+
+    public double getMinLevel() { return minLevel.get(); }
+    public DoubleProperty minLevelProperty() { return minLevel; }
+
+    public double getDefaultQuantity() { return defaultQuantity; }
+
+    public String getStatus() { return status.get(); }
+    public StringBinding statusProperty() { return status; }
+
+    public boolean isOutOfStock() { return getQuantity() <= 0; }
+
+    /** Removes stock (never goes below zero). */
+    public void deduct(double amount) { setQuantity(getQuantity() - amount); }
+
+    /** Adds stock (restock). */
+    public void add(double amount) { setQuantity(getQuantity() + amount); }
+
+    /** 20.0 -> "20", 2.5 -> "2.5" */
+    public static String formatAmount(double value) {
+        if (value == Math.rint(value)) {
+            return String.valueOf((long) value);
+        }
+        return String.format("%.1f", value);
     }
 
-    /**
-     * Deducts the specified amount from the ingredient's stock quantity.
-     */
-    public void deduct(double amount) {
-        int current = quantity.get();
-        quantity.set((int) Math.max(0, current - amount));
-    }
-
-    public void deduct(int amount) {
-        int current = quantity.get();
-        quantity.set(Math.max(0, current - amount));
-    }
+    @Override
+    public String toString() { return getName(); }
 }

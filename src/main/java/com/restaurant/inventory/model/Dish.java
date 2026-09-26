@@ -1,51 +1,72 @@
 package com.restaurant.inventory.model;
 
-import javafx.beans.property.*;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
+/**
+ * MODEL: a menu item (named Dish so it does not clash with javafx.scene.control.MenuItem).
+ * A dish knows which ingredients it needs, so it can tell whether it can be prepared.
+ */
 public class Dish {
-    private final StringProperty name;
-    private final StringProperty category;
-    private final DoubleProperty price;
-    private final StringProperty imagePath;
-    private final List<RecipeLine> recipe;
 
-    public Dish(String name, String category, double price, String imagePath) {
-        this.name = new SimpleStringProperty(name);
-        this.category = new SimpleStringProperty(category);
-        this.price = new SimpleDoubleProperty(price);
-        this.imagePath = new SimpleStringProperty(imagePath);
-        this.recipe = new ArrayList<>();
+    /** Images stored in src/main/resources/images (used by the "Change Image" button). */
+    public static final List<String> IMAGE_FILES = List.of(
+            "burger.png", "pizza.png", "pasta.png", "salad.png",
+            "soup.png", "juice.png", "dessert.png");
+
+    private final String name;
+    private final String category;
+    private final double price;
+    private String imageName;
+    private final List<RecipeLine> recipe = new ArrayList<>();
+
+    public Dish(String name, String category, double price, String imageName) {
+        this.name = name;
+        this.category = category;
+        this.price = price;
+        this.imageName = imageName;
     }
 
-    public Dish(String name, String category, double price, String imagePath, List<RecipeLine> recipe) {
-        this.name = new SimpleStringProperty(name);
-        this.category = new SimpleStringProperty(category);
-        this.price = new SimpleDoubleProperty(price);
-        this.imagePath = new SimpleStringProperty(imagePath);
-        this.recipe = recipe != null ? recipe : new ArrayList<>();
+    /** Fluent helper: dish.needs(patty, 1).needs(bun, 1) ... */
+    public Dish needs(Ingredient ingredient, double amountPerServing) {
+        recipe.add(new RecipeLine(ingredient, amountPerServing));
+        return this;
     }
 
-    public String getName() { return name.get(); }
-    public StringProperty nameProperty() { return name; }
+    public String getName() { return name; }
+    public String getCategory() { return category; }
+    public double getPrice() { return price; }
+    public String getImageName() { return imageName; }
+    public void setImageName(String imageName) { this.imageName = imageName; }
+    public List<RecipeLine> getRecipe() { return Collections.unmodifiableList(recipe); }
 
-    public String getCategory() { return category.get(); }
-    public StringProperty categoryProperty() { return category; }
-
-    public double getPrice() { return price.get(); }
-    public DoubleProperty priceProperty() { return price; }
-
-    public String getImagePath() { return imagePath.get(); }
-    public StringProperty imagePathProperty() { return imagePath; }
-
-    public List<RecipeLine> getRecipe() {
-        return recipe;
+    /** True if there is enough stock of EVERY ingredient for the given number of servings. */
+    public boolean canMake(int servings) {
+        return missingIngredients(servings).isEmpty();
     }
 
-    public List<String> missingIngredients(int quantity) {
+    /** True if at least one serving can be prepared. */
+    public boolean isAvailable() {
+        return canMake(1);
+    }
+
+    /** Human readable list of ingredients that are not enough, e.g. "Cheese Slice (need 2, have 1)". */
+    public List<String> missingIngredients(int servings) {
         List<String> missing = new ArrayList<>();
-        // Checks recipe ingredients against stock if integrated
+        for (RecipeLine line : recipe) {
+            double needed = line.getAmount() * servings;
+            double have = line.getIngredient().getQuantity();
+            if (have < needed) {
+                missing.add(String.format("%s (need %s, have %s)",
+                        line.getIngredient().getName(),
+                        Ingredient.formatAmount(needed),
+                        Ingredient.formatAmount(have)));
+            }
+        }
         return missing;
     }
+
+    @Override
+    public String toString() { return name; }
 }

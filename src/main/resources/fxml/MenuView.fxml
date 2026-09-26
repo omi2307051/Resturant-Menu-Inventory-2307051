@@ -1,27 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?import javafx.scene.layout.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.geometry.Insets?>
 
-<BorderPane fx:controller="com.restaurant.inventory.controller.MenuController"
-            stylesheets="/css/styles.css" styleClass="menu-pane"
-            xmlns:fx="http://javafx.com/fxml">
-    <top>
-        <HBox spacing="10" alignment="CENTER_LEFT">
-            <padding><Insets top="15" right="15" bottom="15" left="15"/></padding>
-            <Label text="Restaurant Menu &amp; Categories" styleClass="header-label"/>
-            <Pane HBox.hgrow="ALWAYS"/>
-            <Label text="Filter Category:" style="-fx-font-weight: bold;"/>
-            <ComboBox fx:id="categoryFilter" prefWidth="160"/>
-        </HBox>
-    </top>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.restaurant.inventory.controller.MenuController">
+    <padding>
+        <Insets top="12" right="12" bottom="12" left="12"/>
+    </padding>
+
+    <left>
+        <VBox spacing="6" prefWidth="300">
+            <Label text="Menu categories (TreeView)" styleClass="section-title"/>
+            <TreeView fx:id="menuTree" VBox.vgrow="ALWAYS"/>
+        </VBox>
+    </left>
+
     <center>
-        <ScrollPane fitToWidth="true" style="-fx-background: transparent; -fx-background-color: transparent;">
-            <content>
-                <TilePane fx:id="menuTilePane" hgap="20" vgap="20" prefColumns="4">
-                    <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
-                </TilePane>
-            </content>
-        </ScrollPane>
+        <VBox spacing="12">
+            <padding>
+                <Insets left="20"/>
+            </padding>
+            <Label fx:id="selectedNodeLabel" styleClass="section-title" wrapText="true"/>
+            <Label fx:id="detailsLabel" styleClass="dish-details" wrapText="true"/>
+        </VBox>
     </center>
 </BorderPane>

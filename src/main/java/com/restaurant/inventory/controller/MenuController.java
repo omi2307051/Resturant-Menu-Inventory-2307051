@@ -1,90 +1,107 @@
 package com.restaurant.inventory.controller;
 
 import com.restaurant.inventory.model.Dish;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
+import com.restaurant.inventory.model.RecipeLine;
+import com.restaurant.inventory.model.Ingredient;
+import com.restaurant.inventory.service.InventoryService;
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import javafx.scene.layout.TilePane;
-import javafx.scene.layout.VBox;
+import javafx.fxml.Initializable;
+import javafx.scene.control.Label;
+import javafx.scene.control.TreeItem;
+import javafx.scene.control.TreeView;
 
-public class MenuController {
+import java.net.URL;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.ResourceBundle;
 
-    @FXML private TilePane menuTilePane;
-    @FXML private ComboBox<String> categoryFilter;
+/**
+ * "Menu" tab: the menu organised as a tree (categories -> dishes).
+ *
+ * TOPIC HERE: TreeView - the selected node's name is shown in a Label.
+ */
+public class MenuController implements Initializable {
 
-    private final ObservableList<Dish> menuList = FXCollections.observableArrayList(
-            // Fast Food / Burgers
-            new Dish("Classic Beef Burger", "Burger", 350.0, "/images/burger.png"),
-            new Dish("Cheesy Chicken Burger", "Burger", 320.0, "/images/burger.png"),
-            // Pizza & Italian
-            new Dish("Italian Pepperoni Pizza", "Pizza", 750.0, "/images/pizza.png"),
-            new Dish("Creamy White Pasta", "Foreign Dish", 480.0, "/images/pasta.png"),
-            new Dish("Mexican Lasagna", "Foreign Dish", 550.0, "/images/pasta.png"),
-            // Appetizers / Soups & Salads
-            new Dish("Hot & Sour Thai Soup", "Appetizer", 250.0, "/images/soup.png"),
-            new Dish("Crispy French Fries", "Appetizer", 150.0, "/images/salad.png"),
-            new Dish("Fresh Greek Salad", "Salad", 220.0, "/images/salad.png"),
-            // Desserts
-            new Dish("Chocolate Lava Cake", "Dessert", 280.0, "/images/dessert.png"),
-            new Dish("Traditional Faluda", "Dessert", 200.0, "/images/dessert.png"),
-            // Beverages
-            new Dish("Fresh Mango Juice", "Juice", 180.0, "/images/juice.png")
-    );
+    @FXML private TreeView<String> menuTree;
+    @FXML private Label selectedNodeLabel;
+    @FXML private Label detailsLabel;
 
-    @FXML
-    public void initialize() {
-        categoryFilter.getItems().addAll("All", "Burger", "Pizza", "Foreign Dish", "Appetizer", "Salad", "Dessert", "Juice");
-        categoryFilter.setValue("All");
-        categoryFilter.setOnAction(e -> filterMenu(categoryFilter.getValue()));
+    private final InventoryService service = InventoryService.getInstance();
 
-        displayMenu(menuList);
+    @Override
+    public void initialize(URL location, ResourceBundle resources) {
+        buildTree();
+
+        selectedNodeLabel.setText("Selected node: (click something in the tree)");
+        detailsLabel.setText("");
+
+        // TreeView selection -> show the node's name in a Label
+        menuTree.getSelectionModel().selectedItemProperty()
+                .addListener((observable, oldItem, newItem) -> showNode(newItem));
+
+        // keep the availability text up to date when stock changes
+        service.stockVersionProperty().addListener((observable, oldValue, newValue) ->
+                showNode(menuTree.getSelectionModel().getSelectedItem()));
     }
 
-    private void filterMenu(String category) {
-        menuTilePane.getChildren().clear();
-        if ("All".equals(category)) {
-            displayMenu(menuList);
+    /** Root -> categories (Starters, Main Course, ...) -> dishes. */
+    private void buildTree() {
+        TreeItem<String> rootItem = new TreeItem<>("Restaurant Menu");
+        rootItem.setExpanded(true);
+
+        Map<String, TreeItem<String>> categories = new LinkedHashMap<>();
+        for (Dish dish : service.getDishes()) {
+            TreeItem<String> categoryItem = categories.get(dish.getCategory());
+            if (categoryItem == null) {
+                categoryItem = new TreeItem<>(dish.getCategory());
+                categoryItem.setExpanded(true);
+                categories.put(dish.getCategory(), categoryItem);
+                rootItem.getChildren().add(categoryItem);
+            }
+            categoryItem.getChildren().add(new TreeItem<>(dish.getName()));
+        }
+        menuTree.setRoot(rootItem);
+    }
+
+    private void showNode(TreeItem<String> item) {
+        if (item == null) {
+            return;
+        }
+        String name = item.getValue();
+        selectedNodeLabel.setText("Selected node: " + name);
+
+        Dish dish = service.findDish(name);
+        if (dish != null) {
+            detailsLabel.setText(describe(dish));
+        } else if (item.getParent() == null) {
+            detailsLabel.setText("This is the root of the menu.\nIt contains "
+                    + item.getChildren().size() + " categories.");
         } else {
-            ObservableList<Dish> filtered = FXCollections.observableArrayList();
-            for (Dish d : menuList) {
-                if (d.getCategory().equalsIgnoreCase(category)) {
-                    filtered.add(d);
-                }
-            }
-            displayMenu(filtered);
+            detailsLabel.setText("Category \"" + name + "\" contains "
+                    + item.getChildren().size() + " dish(es).");
         }
     }
 
-    private void displayMenu(ObservableList<Dish> dishes) {
-        for (Dish dish : dishes) {
-            VBox card = new VBox(10);
-            card.getStyleClass().add("food-card");
-            card.setPrefSize(180, 220);
+    private String describe(Dish dish) {
+        StringBuilder text = new StringBuilder();
+        text.append("Category: ").append(dish.getCategory()).append('\n');
+        text.append(String.format("Price: $%.2f%n", dish.getPrice()));
 
-            ImageView imageView = new ImageView();
-            try {
-                imageView.setImage(new Image(getClass().getResourceAsStream(dish.getImagePath())));
-            } catch (Exception e) {
-                // Fallback if image path missing
-            }
-            imageView.setFitWidth(100);
-            imageView.setFitHeight(100);
-            imageView.setPreserveRatio(true);
-
-            Label nameLbl = new Label(dish.getName());
-            nameLbl.setStyle("-fx-font-weight: bold; -fx-text-fill: #2c3e50;");
-
-            Label catLbl = new Label("Category: " + dish.getCategory());
-            catLbl.setStyle("-fx-font-size: 11px; -fx-text-fill: #7f8c8d;");
-
-            Label priceLbl = new Label(String.format("৳%.2f", dish.getPrice()));
-            priceLbl.getStyleClass().add("currency-label");
-
-            card.getChildren().addAll(imageView, nameLbl, catLbl, priceLbl);
-            menuTilePane.getChildren().add(card);
+        List<String> missing = dish.missingIngredients(1);
+        if (missing.isEmpty()) {
+            text.append("Availability: AVAILABLE\n");
+        } else {
+            text.append("Availability: OUT OF STOCK\n");
+            text.append("Missing: ").append(String.join(", ", missing)).append('\n');
         }
+
+        text.append("\nRecipe (per serving):\n");
+        for (RecipeLine line : dish.getRecipe()) {
+            text.append("  - ").append(line.getIngredient().getName()).append(": ")
+                    .append(Ingredient.formatAmount(line.getAmount())).append(' ')
+                    .append(line.getIngredient().getUnit()).append('\n');
+        }
+        return text.toString();
     }
 }
