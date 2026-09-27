@@ -10,18 +10,22 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.DateCell;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Toggle;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
 import javafx.stage.FileChooser;
 
 import java.io.File;
@@ -115,17 +119,50 @@ public class StaffController implements Initializable {
             LocalDate date = cell.getValue().getDateOfBirth();
             return new SimpleStringProperty(date == null ? "" : date.format(DATE_FORMAT));
         });
+
+        // ---- THREE independent ways to delete a row, so there is always one that works: ----
+
+        // 1) Right-click a row -> "Delete staff member" context menu.
+        staffTable.setRowFactory(tv -> {
+            TableRow<Person> row = new TableRow<>();
+            MenuItem deleteItem = new MenuItem("Delete staff member");
+            deleteItem.setOnAction(e -> deletePerson(row.getItem()));
+            ContextMenu menu = new ContextMenu(deleteItem);
+            // only show the menu on rows that actually hold a Person (not empty rows)
+            row.contextMenuProperty().bind(
+                    javafx.beans.binding.Bindings.when(row.emptyProperty()).then((ContextMenu) null).otherwise(menu));
+            return row;
+        });
+
+        // 2) Select a row, press the Delete (or Backspace) key.
+        staffTable.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.DELETE || event.getCode() == KeyCode.BACK_SPACE) {
+                deletePerson(staffTable.getSelectionModel().getSelectedItem());
+            }
+        });
     }
 
     /** DELETE (database CRUD): removes the selected staff member from the table AND SQLite. */
     @FXML
     private void onRemoveStaff() {
-        Person selected = staffTable.getSelectionModel().getSelectedItem();
+        // 3) The "Delete Selected Staff" button.
+        deletePerson(staffTable.getSelectionModel().getSelectedItem());
+    }
+
+    /** Shared delete logic used by the button, the right-click menu, and the Delete key. */
+    private void deletePerson(Person selected) {
         if (selected == null) {
-            AlertUtil.warning("Nothing selected", "Click a row in the table first.");
+            AlertUtil.warning("Nothing selected", "Click a row in the table first, then delete it.");
+            return;
+        }
+        boolean confirmed = AlertUtil.confirm("Delete staff member",
+                "Delete " + selected.getName() + " (" + selected.getRole() + ")? This cannot be undone.");
+        if (!confirmed) {
             return;
         }
         service.removeStaff(selected);
+        staffTable.getSelectionModel().clearSelection();
+        formMessageLabel.setText("Deleted: " + selected.getName());
     }
 
     /**
@@ -309,7 +346,7 @@ public class StaffController implements Initializable {
                 ((RadioButton) role).getText());
         service.addStaff(person);
 
-        formMessageLabel.setText("Saved: " + name + " (password is not stored in this demo)");
+        formMessageLabel.setText("Added: " + name + " (password is not stored in this demo)");
         clearForm();
     }
 

@@ -92,7 +92,7 @@
                         </VBox>
                     </HBox>
 
-                    <Button text="Submit" styleClass="primary-button" onAction="#onSubmit"/>
+                    <Button text="Add Staff" styleClass="primary-button" onAction="#onSubmit"/>
                     <Label fx:id="formMessageLabel" styleClass="info-label" wrapText="true"/>
                 </VBox>
             </content>
@@ -119,9 +119,11 @@
                 </columns>
             </TableView>
             <HBox spacing="8">
-                <Button text="Remove selected" onAction="#onRemoveStaff"/>
+                <Button text="Delete Selected Staff" onAction="#onRemoveStaff"/>
                 <Button text="Promote skill (Update)" onAction="#onPromoteStaff"/>
             </HBox>
+            <Label text="Tip: you can also right-click a row, or select it and press the Delete key."
+                   styleClass="info-label" wrapText="true"/>
         </VBox>
     </center>
 </BorderPane>
