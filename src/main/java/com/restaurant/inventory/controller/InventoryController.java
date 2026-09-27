@@ -4,8 +4,10 @@ import com.restaurant.inventory.model.Ingredient;
 import com.restaurant.inventory.service.InventoryService;
 import com.restaurant.inventory.util.AlertUtil;
 import javafx.collections.ListChangeListener;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TableCell;
@@ -17,9 +19,13 @@ import java.net.URL;
 import java.util.ResourceBundle;
 
 /**
- * "Inventory" tab: the ingredient stock table, restocking, and the Accumulate / ProgressBar demo.
+ * "Inventory" tab: the ingredient stock table, restocking, deleting, the Accumulate /
+ * ProgressBar demo, and a "check supplier price" background task.
  *
- * TOPICS HERE: TableView + ObservableList (Ingredient model), ProgressBar, TextField, Alerts.
+ * TOPICS HERE: TableView + ObservableList (Ingredient model), ProgressBar, TextField, Alerts,
+ *              DATABASE INTEGRATION (restock/delete both update SQLite via InventoryService),
+ *              CONCURRENCY (the supplier-price check runs on a background thread via a Task
+ *              submitted to the shared thread pool, so the UI never freezes while "waiting").
  */
 public class InventoryController implements Initializable {
 
@@ -35,6 +41,11 @@ public class InventoryController implements Initializable {
     @FXML private Label selectedIngredientLabel;
     @FXML private TextField restockField;
     @FXML private Label restockMessageLabel;
+    @FXML private Button deleteButton;
+
+    // supplier price check (concurrency demo)
+    @FXML private Button checkSupplierButton;
+    @FXML private Label supplierPriceLabel;
 
     // accumulate / progress panel
     @FXML private TextField targetField;
@@ -133,10 +144,57 @@ public class InventoryController implements Initializable {
             AlertUtil.error("Invalid number", "The amount must be greater than 0.");
             return;
         }
-        ingredient.add(amount);
+        service.restockIngredient(ingredient, amount);
         restockMessageLabel.setText("Added " + Ingredient.formatAmount(amount) + " " + ingredient.getUnit()
-                + " to " + ingredient.getName() + ".");
+                + " to " + ingredient.getName() + " (saved to database).");
         restockField.clear();
+    }
+
+    /** DELETE (database CRUD): removes the selected ingredient from the table and from SQLite. */
+    @FXML
+    private void onDeleteIngredient() {
+        Ingredient ingredient = ingredientTable.getSelectionModel().getSelectedItem();
+        if (ingredient == null) {
+            AlertUtil.warning("Nothing selected", "Click an ingredient in the table first.");
+            return;
+        }
+        service.deleteIngredient(ingredient);
+        restockMessageLabel.setText("Deleted " + ingredient.getName() + " from stock and the database.");
+    }
+
+    // ================================================================= CONCURRENCY (Task + thread pool)
+
+    /**
+     * Runs a simulated "ask the supplier for today's price" lookup on a background thread
+     * (via the shared executor in InventoryService) so the 1+ second delay never blocks the UI.
+     * The button is disabled while the task runs and the label's text is bound to the task's
+     * message property, which Task keeps synchronised with the FX thread automatically.
+     */
+    @FXML
+    private void onCheckSupplierPrice() {
+        Ingredient ingredient = ingredientTable.getSelectionModel().getSelectedItem();
+        if (ingredient == null) {
+            AlertUtil.warning("Nothing selected", "Click an ingredient in the table first.");
+            return;
+        }
+
+        Task<Double> task = service.checkSupplierPriceTask(ingredient);
+        supplierPriceLabel.textProperty().bind(task.messageProperty());
+        checkSupplierButton.setDisable(true);
+
+        task.setOnSucceeded(event -> {
+            supplierPriceLabel.textProperty().unbind();
+            supplierPriceLabel.setText("Supplier quote for " + ingredient.getName() + ": "
+                    + InventoryService.taka(task.getValue()) + " per " + ingredient.getUnit());
+            checkSupplierButton.setDisable(false);
+        });
+        task.setOnFailed(event -> {
+            supplierPriceLabel.textProperty().unbind();
+            supplierPriceLabel.setText("Could not reach the supplier. Please try again.");
+            checkSupplierButton.setDisable(false);
+        });
+
+        service.getExecutor().submit(task);
     }
 
     // ================================================================= PROGRESSBAR

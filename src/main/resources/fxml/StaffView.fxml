@@ -109,8 +109,9 @@
                     <TableColumn fx:id="photoCol" text="Photo" prefWidth="90"/>
                 </columns>
             </TableView>
-            <HBox>
+            <HBox spacing="8">
                 <Button text="Remove selected" onAction="#onRemoveStaff"/>
+                <Button text="Promote skill (Update)" onAction="#onPromoteStaff"/>
             </HBox>
         </VBox>
     </center>

@@ -5,6 +5,9 @@ import com.restaurant.inventory.model.Dish;
 import com.restaurant.inventory.model.Ingredient;
 import com.restaurant.inventory.model.Person;
 import com.restaurant.inventory.model.RecipeLine;
+import com.restaurant.inventory.model.Reportable;
+import com.restaurant.inventory.util.DatabaseManager;
+import com.restaurant.inventory.util.NetworkUtil;
 import javafx.beans.Observable;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
@@ -15,17 +18,21 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.time.DayOfWeek;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 /**
@@ -75,11 +82,27 @@ public final class InventoryService {
     private final IntegerProperty stockVersion = new SimpleIntegerProperty(0);
     private final DoubleProperty todaysRevenue = new SimpleDoubleProperty(0);
 
+    /**
+     * CONCURRENCY: a small thread pool shared by the whole app for anything that must not
+     * block the JavaFX UI thread (checking a "supplier" price, fetching a live exchange
+     * rate, or parsing a big CSV file). Daemon threads so the pool never keeps the app alive.
+     */
+    private final ExecutorService executor = Executors.newFixedThreadPool(2, runnable -> {
+        Thread thread = new Thread(runnable, "restaurant-worker");
+        thread.setDaemon(true);
+        return thread;
+    });
+
     private InventoryService() {
+        DatabaseManager.initSchema();
         seedData();
+        seedStaffIfEmpty();
         ingredients.addListener((ListChangeListener<Ingredient>) change -> updateAlert());
         updateAlert();
     }
+
+    /** The shared background thread pool (CONCURRENCY topic). */
+    public ExecutorService getExecutor() { return executor; }
 
     // ------------------------------------------------------------------ getters
 
@@ -189,13 +212,18 @@ public final class InventoryService {
         }
 
         for (RecipeLine line : dish.getRecipe()) {
-            line.getIngredient().deduct(line.getAmount() * quantity);
+            Ingredient ingredient = line.getIngredient();
+            ingredient.deduct(line.getAmount() * quantity);
+            DatabaseManager.upsertIngredient(ingredient.getName(), ingredient.getUnit(),
+                    ingredient.getQuantity(), ingredient.getMinLevel());
         }
 
         double total = getDiscountedPrice(dish) * quantity;
         todaysRevenue.set(todaysRevenue.get() + total);
         String time = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
-        orderHistory.add(0, String.format("%s   %d x %s   (%s)", time, quantity, dish.getName(), taka(total)));
+        String summary = String.format("%d x %s", quantity, dish.getName());
+        orderHistory.add(0, String.format("%s   %s   (%s)", time, summary, taka(total)));
+        DatabaseManager.insertOrder(summary, total, Instant.now().toString());
 
         return new OrderResult(true, String.format("Order placed: %d x %s  -  total %s. Ingredients deducted from stock.",
                 quantity, dish.getName(), taka(total)));
@@ -232,7 +260,10 @@ public final class InventoryService {
             Dish dish = line.getDish();
             int qty = line.getQuantity();
             for (RecipeLine recipeLine : dish.getRecipe()) {
-                recipeLine.getIngredient().deduct(recipeLine.getAmount() * qty);
+                Ingredient ingredient = recipeLine.getIngredient();
+                ingredient.deduct(recipeLine.getAmount() * qty);
+                DatabaseManager.upsertIngredient(ingredient.getName(), ingredient.getUnit(),
+                        ingredient.getQuantity(), ingredient.getMinLevel());
             }
             double unitPrice = getDiscountedPrice(dish);
             double lineTotal = unitPrice * qty;
@@ -243,8 +274,9 @@ public final class InventoryService {
 
         todaysRevenue.set(todaysRevenue.get() + grandTotal);
         String time = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
-        orderHistory.add(0, String.format("%s   %d dish(es), %d item(s)   Total %s",
-                time, cart.size(), dishCount, taka(grandTotal)));
+        String summary = String.format("%d dish(es), %d item(s)", cart.size(), dishCount);
+        orderHistory.add(0, String.format("%s   %s   Total %s", time, summary, taka(grandTotal)));
+        DatabaseManager.insertOrder(summary, grandTotal, Instant.now().toString());
 
         return new OrderResult(true, "Order placed! Ingredients deducted from stock.\n\n"
                 + receipt + "\nGrand total: " + taka(grandTotal));
@@ -254,6 +286,8 @@ public final class InventoryService {
     public void resetToDefaults() {
         for (Ingredient ingredient : ingredients) {
             ingredient.setQuantity(ingredient.getDefaultQuantity());
+            DatabaseManager.upsertIngredient(ingredient.getName(), ingredient.getUnit(),
+                    ingredient.getQuantity(), ingredient.getMinLevel());
         }
         orderHistory.clear();
         todaysRevenue.set(0);
@@ -261,12 +295,14 @@ public final class InventoryService {
     }
 
     /**
-     * Loads stock levels from a CSV/text file. Each line: name,quantity[,unit]
-     * Lines starting with # and lines that are not numbers (e.g. a header) are skipped.
-     * Existing ingredients are updated, unknown ones are added.
+     * CONCURRENCY-SAFE STEP 1 (runs on a background thread): reads and parses the CSV/text file
+     * ONLY - it never touches the ObservableList (JavaFX collections must only be changed on the
+     * UI thread), so this method is safe to call from inside a {@link Task}.
+     * Each line: name,quantity[,unit]. Lines starting with # and non-numeric lines (e.g. a header)
+     * are skipped.
      */
-    public int loadStockFromCsv(File file) throws IOException {
-        int count = 0;
+    public List<Object[]> parseStockCsv(File file) throws IOException {
+        List<Object[]> parsed = new ArrayList<>();
         for (String rawLine : Files.readAllLines(file.toPath())) {
             String line = rawLine.trim();
             if (line.isEmpty() || line.startsWith("#")) continue;
@@ -283,11 +319,31 @@ public final class InventoryService {
 
             String name = parts[0].trim();
             String unit = parts.length > 2 ? parts[2].trim() : "pcs";
+            parsed.add(new Object[]{ name, qty, unit });
+        }
+        return parsed;
+    }
+
+    /**
+     * CONCURRENCY-SAFE STEP 2 (must run on the JavaFX UI thread, e.g. from a Task's
+     * onSucceeded handler): applies already-parsed rows to the ObservableList and persists
+     * them. Existing ingredients are updated, unknown ones are added.
+     */
+    public int applyParsedStock(List<Object[]> parsedRows) {
+        int count = 0;
+        for (Object[] row : parsedRows) {
+            String name = (String) row[0];
+            double qty = (double) row[1];
+            String unit = (String) row[2];
+
             Ingredient existing = findIngredient(name);
             if (existing != null) {
                 existing.setQuantity(qty);
+                DatabaseManager.upsertIngredient(existing.getName(), existing.getUnit(), qty, existing.getMinLevel());
             } else {
-                ingredients.add(new Ingredient(name, unit, qty, 0));
+                Ingredient added = new Ingredient(name, unit, qty, 0);
+                ingredients.add(added);
+                DatabaseManager.upsertIngredient(name, unit, qty, 0);
             }
             count++;
         }
@@ -317,10 +373,19 @@ public final class InventoryService {
     }
 
     private Ingredient stock(String name, String unit, double qty, double minLevel) {
-        Ingredient ingredient = new Ingredient(name, unit, qty, minLevel);
+        // DATABASE INTEGRATION: if this ingredient was already saved from an earlier run,
+        // start from its persisted quantity instead of the hard-coded default, so stock
+        // levels survive an application restart. Otherwise, save the default now.
+        Double persisted = DatabaseManager.readIngredientQuantity(name);
+        double startQty = persisted != null ? persisted : qty;
+
+        Ingredient ingredient = new Ingredient(name, unit, startQty, minLevel);
         ingredients.add(ingredient);
+        DatabaseManager.upsertIngredient(name, unit, startQty, minLevel);
         return ingredient;
     }
+
+
 
     /** Sample data so the app is useful the first time you run it. */
     private void seedData() {
@@ -419,12 +484,128 @@ public final class InventoryService {
         dishes.add(new Dish("Gulab Jamun", Dish.CAT_DESSERTS, 140.00, "gulab_jamun.png")
                 .needs(milkPowder, 100).needs(sugarSyrup, 80).needs(ghee, 20));
 
-        // ---- staff --------------------------------------------------------------------------
-        staff.add(new Person("Rahim Uddin", "Male", "Expert", "Bangladesh",
+        // Staff is NOT seeded here - see loadStaffFromDatabase()/seedStaffIfEmpty():
+        // the "staff" table in SQLite is the single source of truth for staff members,
+        // so the same 3 people are not duplicated every time the app restarts.
+    }
+
+    /** DATABASE INTEGRATION: called once at startup - loads staff from SQLite, seeding it the first time. */
+    private void seedStaffIfEmpty() {
+        List<Object[]> rows = DatabaseManager.readAllStaff();
+        if (!rows.isEmpty()) {
+            for (Object[] row : rows) {
+                addStaffFromDbRow(row);
+            }
+            return;
+        }
+        // first run ever (or database unavailable) -> create 3 default staff members
+        addStaff(new Person("Rahim Uddin", "Male", "Expert", "Bangladesh",
                 LocalDate.of(1985, 4, 12), "Reading, Traveling", "-"));
-        staff.add(new Person("Ayesha Rahman", "Female", "Intermediate", "Bangladesh",
+        addStaff(new Person("Ayesha Rahman", "Female", "Intermediate", "Bangladesh",
                 LocalDate.of(1994, 9, 3), "Gaming", "-"));
-        staff.add(new Person("John Smith", "Male", "Beginner", "United Kingdom",
+        addStaff(new Person("John Smith", "Male", "Beginner", "United Kingdom",
                 LocalDate.of(2001, 1, 20), "Traveling", "-"));
+    }
+
+    private void addStaffFromDbRow(Object[] row) {
+        int id = (int) row[0];
+        String name = (String) row[1];
+        LocalDate dob = null;
+        try {
+            dob = LocalDate.parse((String) row[5]);
+        } catch (Exception ignored) {
+            // older / malformed row - leave date of birth blank rather than crash
+        }
+        Person person = new Person(name, (String) row[2], (String) row[3], (String) row[4],
+                dob, (String) row[6], (String) row[7]);
+        person.setId(id);
+        staff.add(person);
+    }
+
+    // ------------------------------------------------------------------ STAFF CRUD (Create/Read/Update/Delete)
+
+    /** CREATE: adds a staff member to the in-memory table AND persists it in SQLite. */
+    public void addStaff(Person person) {
+        staff.add(person);
+        int id = DatabaseManager.insertStaff(person.getName(), person.getGender(), person.getSkillLevel(),
+                person.getCountry(), person.getDateOfBirth() == null ? "" : person.getDateOfBirth().toString(),
+                person.getHobbies(), person.getPhotoFile());
+        person.setId(id);
+    }
+
+    /** UPDATE: changes a staff member's skill level, in memory and in the database. */
+    public void updateStaffSkill(Person person, String newSkillLevel) {
+        person.setSkillLevel(newSkillLevel);
+        DatabaseManager.updateStaffSkill(person.getId(), newSkillLevel);
+    }
+
+    /** DELETE: removes a staff member from the table AND from the database. */
+    public void removeStaff(Person person) {
+        staff.remove(person);
+        DatabaseManager.deleteStaff(person.getId());
+    }
+
+    // ------------------------------------------------------------------ INGREDIENT CRUD extras
+
+    /** UPDATE: adds stock to an ingredient and persists the new quantity (used by "Restock"). */
+    public void restockIngredient(Ingredient ingredient, double amount) {
+        ingredient.add(amount);
+        DatabaseManager.upsertIngredient(ingredient.getName(), ingredient.getUnit(),
+                ingredient.getQuantity(), ingredient.getMinLevel());
+    }
+
+    /** DELETE: removes an ingredient completely (from every dish's recipe, the table, and the database). */
+    public void deleteIngredient(Ingredient ingredient) {
+        ingredients.remove(ingredient);
+        DatabaseManager.deleteIngredient(ingredient.getName());
+    }
+
+    // ------------------------------------------------------------------ CONCURRENCY (Task + thread pool)
+
+    /**
+     * Simulates asking an outside supplier for today's unit price of an ingredient.
+     * Deliberately slow (network-like latency) to show why this MUST run off the UI thread:
+     * the returned {@link Task} is meant to be handed to {@link #getExecutor()}.
+     */
+    public Task<Double> checkSupplierPriceTask(Ingredient ingredient) {
+        return new Task<>() {
+            @Override
+            protected Double call() throws Exception {
+                updateMessage("Contacting supplier for " + ingredient.getName() + "...");
+                Thread.sleep(1200); // simulated network / supplier lookup latency
+                double basePrice = 5 + (ingredient.getName().length() * 1.75);
+                double swing = (Math.random() * 0.3) - 0.15; // -15% .. +15%
+                return Math.round(basePrice * (1 + swing) * 100.0) / 100.0;
+            }
+        };
+    }
+
+    /**
+     * Fetches today's live USD -> BDT exchange rate over the internet (NETWORKING & DATA PARSING).
+     * Must be run on a background thread (see {@link #getExecutor()}) - it blocks on the HTTP call.
+     */
+    public Task<Double> fetchExchangeRateTask() {
+        return new Task<>() {
+            @Override
+            protected Double call() throws Exception {
+                updateMessage("Fetching live USD -> BDT rate...");
+                return NetworkUtil.fetchUsdToBdtRate();
+            }
+        };
+    }
+
+    // ------------------------------------------------------------------ REPORTS (Reportable interface, polymorphism)
+
+    /**
+     * ADVANCED OOP - POLYMORPHISM: Dish, Ingredient and Person are unrelated classes but all
+     * implement {@link Reportable}, so they can be summarised here through one common interface
+     * type without this method knowing (or caring) which concrete class each item really is.
+     */
+    public List<String> generateReportSummaries() {
+        List<Reportable> everything = new ArrayList<>();
+        everything.addAll(dishes);
+        everything.addAll(ingredients);
+        everything.addAll(staff);
+        return everything.stream().map(Reportable::getSummary).collect(Collectors.toList());
     }
 }

@@ -40,6 +40,8 @@ import java.util.stream.Collectors;
  * TOPICS HERE: TableView + ObservableList + Person model, RadioButton (gender),
  *              ToggleGroup (skill level), CheckBox (hobbies) + Submit, ComboBox (country),
  *              DatePicker + DateTimeFormatter, PasswordField (show/hide), FileChooser + ImageView.
+ *              DATABASE INTEGRATION: Submit/Remove/Promote are full CRUD against the "staff"
+ *              table in SQLite (Create/Read/Update/Delete) via InventoryService.
  */
 public class StaffController implements Initializable {
 
@@ -110,6 +112,7 @@ public class StaffController implements Initializable {
         });
     }
 
+    /** DELETE (database CRUD): removes the selected staff member from the table AND SQLite. */
     @FXML
     private void onRemoveStaff() {
         Person selected = staffTable.getSelectionModel().getSelectedItem();
@@ -117,7 +120,27 @@ public class StaffController implements Initializable {
             AlertUtil.warning("Nothing selected", "Click a row in the table first.");
             return;
         }
-        service.getStaff().remove(selected);
+        service.removeStaff(selected);
+    }
+
+    /**
+     * UPDATE (database CRUD): cycles the selected staff member's skill level
+     * (Beginner -> Intermediate -> Expert -> Beginner ...) and persists the change to SQLite.
+     */
+    @FXML
+    private void onPromoteStaff() {
+        Person selected = staffTable.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            AlertUtil.warning("Nothing selected", "Click a row in the table first.");
+            return;
+        }
+        String next = switch (selected.getSkillLevel() == null ? "" : selected.getSkillLevel()) {
+            case "Beginner" -> "Intermediate";
+            case "Intermediate" -> "Expert";
+            default -> "Beginner";
+        };
+        service.updateStaffSkill(selected, next);
+        staffTable.refresh();
     }
 
     // ================================================================= RADIO BUTTONS
@@ -261,7 +284,7 @@ public class StaffController implements Initializable {
                 dob,
                 hobbies,
                 selectedPhotoName == null ? "-" : selectedPhotoName);
-        service.getStaff().add(person);
+        service.addStaff(person);
 
         formMessageLabel.setText("Saved: " + name + " (password is not stored in this demo)");
         clearForm();

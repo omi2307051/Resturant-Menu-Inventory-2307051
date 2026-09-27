@@ -7,8 +7,12 @@ import java.util.List;
 /**
  * MODEL: a menu item (named Dish so it does not clash with javafx.scene.control.MenuItem).
  * A dish knows which ingredients it needs, so it can tell whether it can be prepared.
+ *
+ * ADVANCED OOP: extends the abstract class {@link MenuItem} (inheritance - name/category/price
+ * live in the parent) and implements the {@link Reportable} interface so it can be included,
+ * polymorphically, alongside Ingredient and Person in the "Reports" feature.
  */
-public class Dish {
+public class Dish extends MenuItem implements Reportable {
 
     /** Images stored in src/main/resources/images (used by the "Change Image" button). */
     public static final List<String> IMAGE_FILES = List.of(
@@ -25,17 +29,12 @@ public class Dish {
     public static final String CAT_DRINKS = "Drinks";
     public static final String CAT_DESSERTS = "Desserts";
 
-    private final String name;
-    private final String category;
-    private final double price;
     private String imageName;
     private final List<RecipeLine> recipe = new ArrayList<>();
     private boolean chefSpecial = false;
 
     public Dish(String name, String category, double price, String imageName) {
-        this.name = name;
-        this.category = category;
-        this.price = price;
+        super(name, category, price);
         this.imageName = imageName;
     }
 
@@ -51,9 +50,6 @@ public class Dish {
         return this;
     }
 
-    public String getName() { return name; }
-    public String getCategory() { return category; }
-    public double getPrice() { return price; }
     public String getImageName() { return imageName; }
     public void setImageName(String imageName) { this.imageName = imageName; }
     public List<RecipeLine> getRecipe() { return Collections.unmodifiableList(recipe); }
@@ -98,6 +94,19 @@ public class Dish {
         };
     }
 
+    /** ABSTRACT METHOD IMPLEMENTATION (from MenuItem): how this item is labelled on screen. */
     @Override
-    public String toString() { return name; }
+    public String getDisplayLabel() {
+        return isChefSpecial() ? "\u2B50 " + getName() : getName();
+    }
+
+    /** INTERFACE IMPLEMENTATION (Reportable): one-line summary used by the Reports feature. */
+    @Override
+    public String getSummary() {
+        return String.format("[Dish] %-22s %-12s \u09F3%,.2f%s", getName(), getCategory(),
+                getPrice(), isAvailable() ? "" : "  (OUT OF STOCK)");
+    }
+
+    @Override
+    public String toString() { return getName(); }
 }

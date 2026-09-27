@@ -20,16 +20,30 @@ and run `Plugins > javafx > javafx:run`.
 ```
 src/main/java/com/restaurant/inventory
   Main.java                      entry point
-  model/    Person, Ingredient, Dish, RecipeLine
-  service/  InventoryService     all data + the "order -> deduct stock" logic
+  model/    Person, Ingredient, Dish, RecipeLine, MenuItem (abstract), Reportable (interface)
+  service/  InventoryService     all data + the "order -> deduct stock" logic + thread pool
   controller/  Main / Order / Inventory / Menu / Staff / Tools controllers
-  util/     AlertUtil
+  util/     AlertUtil, DatabaseManager (SQLite), NetworkUtil (HTTP + JSON)
 src/main/resources
   fxml/     MainView + one FXML per tab
   css/      styles.css
   images/   sample dish pictures used by ImageView
 sample-stock.csv                 try it with File > Open...
+restaurant_inventory.db          created automatically on first run (SQLite database file)
 ```
+
+## Assignment topic coverage
+
+| Topic | Where |
+|---|---|
+| **Version control** | `git log` - see the commit history. *(Note: this project's Git history only goes back a few days before submission, not to the idea-submission date - commit regularly from now on to fix this for future assignments.)* |
+| **Advanced OOP** (interfaces, abstract classes) | `model/Reportable.java` (interface, implemented by `Dish`, `Ingredient`, `Person`) and `model/MenuItem.java` (abstract class, parent of `Dish`) |
+| **JavaFX UI design** | see the table below - BorderPane/VBox/HBox/StackPane/FlowPane + most standard controls |
+| **Layout responsiveness** | `MainController.setupResponsiveLayout()` - font size and label width react to `Scene.widthProperty()`/`heightProperty()` |
+| **Concurrency** | `InventoryService.getExecutor()` (a `ExecutorService` thread pool) used by: "Check supplier price" (Inventory tab), "Fetch live rate" (Kitchen Tools), and File > Open's background CSV parsing - all via `javafx.concurrent.Task` |
+| **Database integration (SQLite)** | `util/DatabaseManager.java` - tables `ingredients`, `staff`, `orders` in `restaurant_inventory.db` |
+| **CRUD** | Ingredients: Create/Read (seed + File>Open), Update (Restock), Delete (Delete ingredient). Staff: Create (Submit), Read (table), Update (Promote skill), Delete (Remove selected) - all backed by SQLite |
+| **Networking & data parsing** | `util/NetworkUtil.java` - HTTP GET with `java.net.http.HttpClient`, JSON parsed with `org.json` ("Fetch live rate" button, Kitchen Tools tab) |
 
 ## Where each topic is used
 

@@ -89,6 +89,34 @@
                     </VBox>
                 </content>
             </TitledPane>
+
+            <!-- Networking + JSON parsing -->
+            <TitledPane text="Live exchange rate (HTTP + JSON)" collapsible="false" prefWidth="380">
+                <content>
+                    <VBox spacing="8">
+                        <padding>
+                            <Insets top="8" right="8" bottom="8" left="8"/>
+                        </padding>
+                        <Label text="Fetches today's real USD to BDT rate from the internet and parses the JSON response." wrapText="true"/>
+                        <Button fx:id="fetchRateButton" text="Fetch live rate" onAction="#onFetchExchangeRate"/>
+                        <Label fx:id="exchangeRateLabel" styleClass="info-label" wrapText="true"/>
+                    </VBox>
+                </content>
+            </TitledPane>
+
+            <!-- Reports: Reportable interface, polymorphism -->
+            <TitledPane text="Reports (interface polymorphism)" collapsible="false" prefWidth="380">
+                <content>
+                    <VBox spacing="8">
+                        <padding>
+                            <Insets top="8" right="8" bottom="8" left="8"/>
+                        </padding>
+                        <Label text="Lists every Dish, Ingredient and Person through one shared Reportable interface." wrapText="true"/>
+                        <Button text="Generate report" onAction="#onGenerateReport"/>
+                        <ListView fx:id="reportList" prefHeight="160"/>
+                    </VBox>
+                </content>
+            </TitledPane>
         </FlowPane>
     </content>
 </ScrollPane>
