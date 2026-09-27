@@ -1,9 +1,12 @@
 package com.restaurant.inventory.controller;
 
+import com.restaurant.inventory.service.InventoryService;
 import com.restaurant.inventory.util.AlertUtil;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Parent;
+import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ColorPicker;
 import javafx.scene.control.Label;
@@ -20,9 +23,15 @@ import java.util.ResourceBundle;
  * "Kitchen Tools" tab: small helpers for the restaurant team.
  *
  * TOPICS HERE: ChoiceBox (window colour), ColorPicker (text colour), Slider (font size),
- *              ListView (fruits), TextArea (+ Clear button), Alert dialogs (Information / Warning / Error).
+ *              ListView (fruits), TextArea (+ Clear button), Alert dialogs (Information / Warning / Error),
+ *              NETWORKING &amp; DATA PARSING (live USD -&gt; BDT rate fetched over HTTP and parsed from JSON,
+ *              on a background thread so the UI never freezes while waiting on the network),
+ *              ADVANCED OOP - POLYMORPHISM (the Reports button lists Dish/Ingredient/Person
+ *              through the single Reportable interface).
  */
 public class ToolsController implements Initializable {
+
+    private final InventoryService service = InventoryService.getInstance();
 
     @FXML private ChoiceBox<String> themeChoice;
     @FXML private Label specialsLabel;
@@ -32,6 +41,13 @@ public class ToolsController implements Initializable {
     @FXML private ListView<String> fruitList;
     @FXML private Label fruitLabel;
     @FXML private TextArea notesArea;
+
+    // networking + JSON parsing
+    @FXML private Button fetchRateButton;
+    @FXML private Label exchangeRateLabel;
+
+    // reports (Reportable interface, polymorphism)
+    @FXML private ListView<String> reportList;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -106,5 +122,45 @@ public class ToolsController implements Initializable {
     @FXML
     private void onShowError() {
         AlertUtil.error("Error", "Something went wrong while saving. Please try again.");
+    }
+
+    // ================================================================= NETWORKING + JSON PARSING
+
+    /**
+     * Makes a real HTTP GET request (see {@link com.restaurant.inventory.util.NetworkUtil})
+     * and parses the JSON response to show today's live USD -> BDT exchange rate.
+     * Runs on the shared background thread pool so a slow/unavailable network never freezes
+     * the window; the button is disabled while the request is in flight.
+     */
+    @FXML
+    private void onFetchExchangeRate() {
+        fetchRateButton.setDisable(true);
+        Task<Double> task = service.fetchExchangeRateTask();
+        exchangeRateLabel.textProperty().bind(task.messageProperty());
+
+        task.setOnSucceeded(event -> {
+            exchangeRateLabel.textProperty().unbind();
+            exchangeRateLabel.setText(String.format("1 USD = \u09F3%.2f (live rate)", task.getValue()));
+            fetchRateButton.setDisable(false);
+        });
+        task.setOnFailed(event -> {
+            exchangeRateLabel.textProperty().unbind();
+            exchangeRateLabel.setText("Could not fetch the live rate (check your internet connection).");
+            fetchRateButton.setDisable(false);
+        });
+
+        service.getExecutor().submit(task);
+    }
+
+    // ================================================================= REPORTS (Reportable interface)
+
+    /**
+     * ADVANCED OOP: asks the service for one-line summaries of every Dish, Ingredient and
+     * Person - three completely unrelated classes - through the single Reportable interface
+     * (polymorphism: the same getSummary() call produces different text for each class).
+     */
+    @FXML
+    private void onGenerateReport() {
+        reportList.getItems().setAll(service.generateReportSummaries());
     }
 }

@@ -41,7 +41,7 @@
                     <StackPane fx:id="dishImageFrame" styleClass="dish-frame">
                         <ImageView fx:id="dishImage" fitWidth="300" fitHeight="190" preserveRatio="true"/>
                     </StackPane>
-                    <Button text="Change Image" onAction="#onChangeImage"/>
+                    <Button text="Reset Image" onAction="#onChangeImage"/>
                     <Label fx:id="selectedDishLabel" styleClass="section-title" wrapText="true"/>
 
                     <Label text="Ingredients needed" styleClass="field-label"/>

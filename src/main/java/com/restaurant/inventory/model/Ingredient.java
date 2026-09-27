@@ -9,8 +9,11 @@ import javafx.beans.property.StringProperty;
 
 /**
  * MODEL: an ingredient kept in the kitchen stock (e.g. "Beef Patty", 20 pcs).
+ *
+ * ADVANCED OOP: implements the {@link Reportable} interface (see Dish, Person)
+ * so it can be listed, polymorphically, in the Reports feature.
  */
-public class Ingredient {
+public class Ingredient implements Reportable {
 
     private final StringProperty name = new SimpleStringProperty();
     private final StringProperty unit = new SimpleStringProperty();
@@ -72,4 +75,11 @@ public class Ingredient {
 
     @Override
     public String toString() { return getName(); }
+
+    /** INTERFACE IMPLEMENTATION (Reportable): one-line summary used by the Reports feature. */
+    @Override
+    public String getSummary() {
+        return String.format("[Ingredient] %-22s %s %s (%s)", getName(),
+                formatAmount(getQuantity()), getUnit(), getStatus());
+    }
 }

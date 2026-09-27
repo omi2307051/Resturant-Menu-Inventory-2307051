@@ -50,7 +50,21 @@
                             <TextField fx:id="restockField" promptText="amount to add" prefWidth="130"/>
                             <Button text="Restock" onAction="#onRestock"/>
                         </HBox>
+                        <Button fx:id="deleteButton" text="Delete ingredient" onAction="#onDeleteIngredient"/>
                         <Label fx:id="restockMessageLabel" styleClass="info-label" wrapText="true"/>
+                    </VBox>
+                </content>
+            </TitledPane>
+
+            <TitledPane text="Supplier price (background Task)" collapsible="false">
+                <content>
+                    <VBox spacing="8">
+                        <padding>
+                            <Insets top="8" right="8" bottom="8" left="8"/>
+                        </padding>
+                        <Label text="Select an ingredient above, then check today's supplier price. This runs on a background thread so the app stays responsive." wrapText="true"/>
+                        <Button fx:id="checkSupplierButton" text="Check supplier price" onAction="#onCheckSupplierPrice"/>
+                        <Label fx:id="supplierPriceLabel" styleClass="info-label" wrapText="true"/>
                     </VBox>
                 </content>
             </TitledPane>

@@ -10,18 +10,22 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.DateCell;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Toggle;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
 import javafx.stage.FileChooser;
 
 import java.io.File;
@@ -40,6 +44,8 @@ import java.util.stream.Collectors;
  * TOPICS HERE: TableView + ObservableList + Person model, RadioButton (gender),
  *              ToggleGroup (skill level), CheckBox (hobbies) + Submit, ComboBox (country),
  *              DatePicker + DateTimeFormatter, PasswordField (show/hide), FileChooser + ImageView.
+ *              DATABASE INTEGRATION: Submit/Remove/Promote are full CRUD against the "staff"
+ *              table in SQLite (Create/Read/Update/Delete) via InventoryService.
  */
 public class StaffController implements Initializable {
 
@@ -49,8 +55,10 @@ public class StaffController implements Initializable {
     @FXML private TextField nameField;
     @FXML private ToggleGroup genderGroup;          // defined in FXML with <fx:define>
     @FXML private ToggleGroup skillGroup;           // defined in FXML with <fx:define>
+    @FXML private ToggleGroup roleGroup;            // defined in FXML with <fx:define>
     @FXML private RadioButton beginnerRadio;
     @FXML private Label genderLabel;
+    @FXML private Label roleLabel;
     @FXML private ComboBox<String> countryCombo;
     @FXML private DatePicker dobPicker;
     @FXML private Label dobLabel;
@@ -68,6 +76,7 @@ public class StaffController implements Initializable {
     // ---- table
     @FXML private TableView<Person> staffTable;
     @FXML private TableColumn<Person, String> nameCol;
+    @FXML private TableColumn<Person, String> roleCol;
     @FXML private TableColumn<Person, String> genderCol;
     @FXML private TableColumn<Person, String> skillCol;
     @FXML private TableColumn<Person, String> countryCol;
@@ -83,6 +92,7 @@ public class StaffController implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         setupTable();
         setupGender();
+        setupRole();
         setupSkillLevel();
         setupCountries();
         setupDatePicker();
@@ -99,6 +109,7 @@ public class StaffController implements Initializable {
         staffTable.setItems(service.getStaff());
 
         nameCol.setCellValueFactory(cell -> cell.getValue().nameProperty());
+        roleCol.setCellValueFactory(cell -> cell.getValue().roleProperty());
         genderCol.setCellValueFactory(cell -> cell.getValue().genderProperty());
         skillCol.setCellValueFactory(cell -> cell.getValue().skillLevelProperty());
         countryCol.setCellValueFactory(cell -> cell.getValue().countryProperty());
@@ -108,16 +119,70 @@ public class StaffController implements Initializable {
             LocalDate date = cell.getValue().getDateOfBirth();
             return new SimpleStringProperty(date == null ? "" : date.format(DATE_FORMAT));
         });
+
+        // ---- THREE independent ways to delete a row, so there is always one that works: ----
+
+        // 1) Right-click a row -> "Delete staff member" context menu.
+        staffTable.setRowFactory(tv -> {
+            TableRow<Person> row = new TableRow<>();
+            MenuItem deleteItem = new MenuItem("Delete staff member");
+            deleteItem.setOnAction(e -> deletePerson(row.getItem()));
+            ContextMenu menu = new ContextMenu(deleteItem);
+            // only show the menu on rows that actually hold a Person (not empty rows)
+            row.contextMenuProperty().bind(
+                    javafx.beans.binding.Bindings.when(row.emptyProperty()).then((ContextMenu) null).otherwise(menu));
+            return row;
+        });
+
+        // 2) Select a row, press the Delete (or Backspace) key.
+        staffTable.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.DELETE || event.getCode() == KeyCode.BACK_SPACE) {
+                deletePerson(staffTable.getSelectionModel().getSelectedItem());
+            }
+        });
     }
 
+    /** DELETE (database CRUD): removes the selected staff member from the table AND SQLite. */
     @FXML
     private void onRemoveStaff() {
+        // 3) The "Delete Selected Staff" button.
+        deletePerson(staffTable.getSelectionModel().getSelectedItem());
+    }
+
+    /** Shared delete logic used by the button, the right-click menu, and the Delete key. */
+    private void deletePerson(Person selected) {
+        if (selected == null) {
+            AlertUtil.warning("Nothing selected", "Click a row in the table first, then delete it.");
+            return;
+        }
+        boolean confirmed = AlertUtil.confirm("Delete staff member",
+                "Delete " + selected.getName() + " (" + selected.getRole() + ")? This cannot be undone.");
+        if (!confirmed) {
+            return;
+        }
+        service.removeStaff(selected);
+        staffTable.getSelectionModel().clearSelection();
+        formMessageLabel.setText("Deleted: " + selected.getName());
+    }
+
+    /**
+     * UPDATE (database CRUD): cycles the selected staff member's skill level
+     * (Beginner -> Intermediate -> Expert -> Beginner ...) and persists the change to SQLite.
+     */
+    @FXML
+    private void onPromoteStaff() {
         Person selected = staffTable.getSelectionModel().getSelectedItem();
         if (selected == null) {
             AlertUtil.warning("Nothing selected", "Click a row in the table first.");
             return;
         }
-        service.getStaff().remove(selected);
+        String next = switch (selected.getSkillLevel() == null ? "" : selected.getSkillLevel()) {
+            case "Beginner" -> "Intermediate";
+            case "Intermediate" -> "Expert";
+            default -> "Beginner";
+        };
+        service.updateStaffSkill(selected, next);
+        staffTable.refresh();
     }
 
     // ================================================================= RADIO BUTTONS
@@ -137,6 +202,18 @@ public class StaffController implements Initializable {
     /** Skill level: Beginner / Intermediate / Expert in a second ToggleGroup. */
     private void setupSkillLevel() {
         beginnerRadio.setSelected(true);   // default value
+    }
+
+    /** Role: Chef / Server - a third ToggleGroup, required just like gender (no default). */
+    private void setupRole() {
+        roleLabel.setText("Selected role: (none)");
+        roleGroup.selectedToggleProperty().addListener((observable, oldToggle, newToggle) -> {
+            if (newToggle == null) {
+                roleLabel.setText("Selected role: (none)");
+            } else {
+                roleLabel.setText("Selected role: " + ((RadioButton) newToggle).getText());
+            }
+        });
     }
 
     // ================================================================= COMBOBOX
@@ -216,6 +293,7 @@ public class StaffController implements Initializable {
         String name = nameField.getText().trim();
         Toggle gender = genderGroup.getSelectedToggle();
         Toggle skill = skillGroup.getSelectedToggle();
+        Toggle role = roleGroup.getSelectedToggle();
         String country = countryCombo.getValue();
         LocalDate dob = dobPicker.getValue();
 
@@ -226,6 +304,10 @@ public class StaffController implements Initializable {
         }
         if (gender == null) {
             AlertUtil.warning("Missing gender", "Please choose a gender.");
+            return;
+        }
+        if (role == null) {
+            AlertUtil.warning("Missing role", "Please choose a role (Chef or Server).");
             return;
         }
         if (country == null) {
@@ -260,16 +342,18 @@ public class StaffController implements Initializable {
                 country,
                 dob,
                 hobbies,
-                selectedPhotoName == null ? "-" : selectedPhotoName);
-        service.getStaff().add(person);
+                selectedPhotoName == null ? "-" : selectedPhotoName,
+                ((RadioButton) role).getText());
+        service.addStaff(person);
 
-        formMessageLabel.setText("Saved: " + name + " (password is not stored in this demo)");
+        formMessageLabel.setText("Added: " + name + " (password is not stored in this demo)");
         clearForm();
     }
 
     private void clearForm() {
         nameField.clear();
         genderGroup.selectToggle(null);
+        roleGroup.selectToggle(null);
         beginnerRadio.setSelected(true);
         countryCombo.setValue(null);
         dobPicker.setValue(null);
