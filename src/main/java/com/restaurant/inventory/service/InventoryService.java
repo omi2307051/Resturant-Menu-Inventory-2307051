@@ -728,13 +728,46 @@ public final class InventoryService {
             }
             return;
         }
-        // first run ever (or database unavailable) -> create 3 default staff members
+        // first run ever (or database unavailable) -> create the default staff roster:
+        // 2 original team members + 15 new hires (5 Chefs, 10 Servers), all Bangladeshi.
         addStaff(new Person("Rahim Uddin", "Male", "Expert", "Bangladesh",
-                LocalDate.of(1985, 4, 12), "Reading, Traveling", "-"));
+                LocalDate.of(1985, 4, 12), "Reading, Traveling", "-", "Chef"));
         addStaff(new Person("Ayesha Rahman", "Female", "Intermediate", "Bangladesh",
-                LocalDate.of(1994, 9, 3), "Gaming", "-"));
-        addStaff(new Person("John Smith", "Male", "Beginner", "United Kingdom",
-                LocalDate.of(2001, 1, 20), "Traveling", "-"));
+                LocalDate.of(1994, 9, 3), "Gaming", "-", "Server"));
+
+        // ---- 5 new Chefs ------------------------------------------------------------------
+        addStaff(new Person("Kamal Hossain", "Male", "Expert", "Bangladesh",
+                LocalDate.of(1982, 6, 18), "Reading", "-", "Chef"));
+        addStaff(new Person("Nasrin Akter", "Female", "Expert", "Bangladesh",
+                LocalDate.of(1988, 11, 2), "Traveling", "-", "Chef"));
+        addStaff(new Person("Shakil Ahmed", "Male", "Intermediate", "Bangladesh",
+                LocalDate.of(1991, 2, 27), "Gaming, Traveling", "-", "Chef"));
+        addStaff(new Person("Farida Yasmin", "Female", "Expert", "Bangladesh",
+                LocalDate.of(1986, 8, 9), "Reading, Gaming", "-", "Chef"));
+        addStaff(new Person("Mizanur Rahman", "Male", "Intermediate", "Bangladesh",
+                LocalDate.of(1993, 5, 30), "Traveling", "-", "Chef"));
+
+        // ---- 10 new Servers ---------------------------------------------------------------
+        addStaff(new Person("Sabbir Hossain", "Male", "Beginner", "Bangladesh",
+                LocalDate.of(1999, 3, 14), "Gaming", "-", "Server"));
+        addStaff(new Person("Runa Islam", "Female", "Beginner", "Bangladesh",
+                LocalDate.of(2000, 7, 21), "Reading", "-", "Server"));
+        addStaff(new Person("Tanvir Ahmed", "Male", "Intermediate", "Bangladesh",
+                LocalDate.of(1997, 12, 5), "Traveling", "-", "Server"));
+        addStaff(new Person("Moushumi Akter", "Female", "Beginner", "Bangladesh",
+                LocalDate.of(2001, 4, 17), "Gaming, Reading", "-", "Server"));
+        addStaff(new Person("Jashim Uddin", "Male", "Beginner", "Bangladesh",
+                LocalDate.of(1998, 9, 23), "Traveling", "-", "Server"));
+        addStaff(new Person("Shirin Sultana", "Female", "Intermediate", "Bangladesh",
+                LocalDate.of(1996, 1, 30), "Reading", "-", "Server"));
+        addStaff(new Person("Rakibul Islam", "Male", "Beginner", "Bangladesh",
+                LocalDate.of(2002, 6, 11), "Gaming", "-", "Server"));
+        addStaff(new Person("Nusrat Jahan", "Female", "Beginner", "Bangladesh",
+                LocalDate.of(1999, 10, 8), "Traveling, Reading", "-", "Server"));
+        addStaff(new Person("Delwar Hossain", "Male", "Intermediate", "Bangladesh",
+                LocalDate.of(1995, 2, 19), "Gaming", "-", "Server"));
+        addStaff(new Person("Poly Begum", "Female", "Beginner", "Bangladesh",
+                LocalDate.of(2000, 12, 25), "Reading", "-", "Server"));
     }
 
     private void addStaffFromDbRow(Object[] row) {
@@ -747,7 +780,7 @@ public final class InventoryService {
             // older / malformed row - leave date of birth blank rather than crash
         }
         Person person = new Person(name, (String) row[2], (String) row[3], (String) row[4],
-                dob, (String) row[6], (String) row[7]);
+                dob, (String) row[6], (String) row[7], (String) row[8]);
         person.setId(id);
         staff.add(person);
     }
@@ -759,7 +792,7 @@ public final class InventoryService {
         staff.add(person);
         int id = DatabaseManager.insertStaff(person.getName(), person.getGender(), person.getSkillLevel(),
                 person.getCountry(), person.getDateOfBirth() == null ? "" : person.getDateOfBirth().toString(),
-                person.getHobbies(), person.getPhotoFile());
+                person.getHobbies(), person.getPhotoFile(), person.getRole());
         person.setId(id);
     }
 

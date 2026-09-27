@@ -31,9 +31,11 @@ public class Person implements Reportable {
     private final ObjectProperty<LocalDate> dateOfBirth = new SimpleObjectProperty<>();
     private final StringProperty hobbies = new SimpleStringProperty();
     private final StringProperty photoFile = new SimpleStringProperty();
+    /** Job role: "Chef" or "Server" (see the Staff tab's Role RadioButtons). */
+    private final StringProperty role = new SimpleStringProperty();
 
     public Person(String name, String gender, String skillLevel, String country,
-                  LocalDate dateOfBirth, String hobbies, String photoFile) {
+                  LocalDate dateOfBirth, String hobbies, String photoFile, String role) {
         this.name.set(name);
         this.gender.set(gender);
         this.skillLevel.set(skillLevel);
@@ -41,6 +43,7 @@ public class Person implements Reportable {
         this.dateOfBirth.set(dateOfBirth);
         this.hobbies.set(hobbies);
         this.photoFile.set(photoFile);
+        this.role.set(role);
     }
 
     // ----- database row id (-1 = not saved yet) -----
@@ -83,13 +86,18 @@ public class Person implements Reportable {
     public void setPhotoFile(String value) { photoFile.set(value); }
     public StringProperty photoFileProperty() { return photoFile; }
 
+    // ----- role (Chef / Server) -----
+    public String getRole() { return role.get(); }
+    public void setRole(String value) { role.set(value); }
+    public StringProperty roleProperty() { return role; }
+
     @Override
     public String toString() { return getName(); }
 
     /** INTERFACE IMPLEMENTATION (Reportable): one-line summary used by the Reports feature. */
     @Override
     public String getSummary() {
-        return String.format("[Staff] %-20s %-8s %-12s %s", getName(), getGender(),
+        return String.format("[Staff] %-20s %-8s %-8s %-12s %s", getName(), getRole(), getGender(),
                 getSkillLevel(), getCountry());
     }
 }

@@ -19,7 +19,7 @@ import java.util.List;
  * Tables:
  *   ingredients(name TEXT PRIMARY KEY, unit TEXT, quantity REAL, min_level REAL)
  *   staff(id INTEGER PRIMARY KEY AUTOINCREMENT, name, gender, skill_level, country,
- *         date_of_birth TEXT, hobbies, photo_file)
+ *         date_of_birth TEXT, hobbies, photo_file, role)
  *   orders(id INTEGER PRIMARY KEY AUTOINCREMENT, summary TEXT, total REAL, placed_at TEXT)
  *
  * "staff" and "ingredients" are the two tables with a real relationship in this app:
@@ -53,7 +53,7 @@ public final class DatabaseManager {
                 "name TEXT PRIMARY KEY, unit TEXT NOT NULL, quantity REAL NOT NULL, min_level REAL NOT NULL)";
         String staffSql = "CREATE TABLE IF NOT EXISTS staff (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, gender TEXT, skill_level TEXT, " +
-                "country TEXT, date_of_birth TEXT, hobbies TEXT, photo_file TEXT)";
+                "country TEXT, date_of_birth TEXT, hobbies TEXT, photo_file TEXT, role TEXT)";
         String ordersSql = "CREATE TABLE IF NOT EXISTS orders (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, summary TEXT NOT NULL, total REAL NOT NULL, placed_at TEXT NOT NULL)";
 
@@ -65,6 +65,16 @@ public final class DatabaseManager {
         } catch (SQLException e) {
             available = false;
             System.err.println("[DatabaseManager] Could not initialise database - running without persistence. " + e.getMessage());
+            return;
+        }
+
+        // MIGRATION: older database files created before the "role" column existed won't have
+        // it yet ("CREATE TABLE IF NOT EXISTS" only applies to brand-new tables) - add it here,
+        // ignoring the error SQLite raises if the column is already present.
+        try (Connection conn = connect(); Statement st = conn.createStatement()) {
+            st.execute("ALTER TABLE staff ADD COLUMN role TEXT");
+        } catch (SQLException ignored) {
+            // column already exists - nothing to do
         }
     }
 
@@ -132,10 +142,10 @@ public final class DatabaseManager {
 
     /** CREATE a staff row, returns the generated id (or -1 if the database is unavailable). */
     public static int insertStaff(String name, String gender, String skillLevel, String country,
-                                   String dateOfBirthIso, String hobbies, String photoFile) {
+                                   String dateOfBirthIso, String hobbies, String photoFile, String role) {
         if (!available) return -1;
-        String sql = "INSERT INTO staff(name, gender, skill_level, country, date_of_birth, hobbies, photo_file) " +
-                "VALUES (?,?,?,?,?,?,?)";
+        String sql = "INSERT INTO staff(name, gender, skill_level, country, date_of_birth, hobbies, photo_file, role) " +
+                "VALUES (?,?,?,?,?,?,?,?)";
         try (Connection conn = connect();
              PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, name);
@@ -145,6 +155,7 @@ public final class DatabaseManager {
             ps.setString(5, dateOfBirthIso);
             ps.setString(6, hobbies);
             ps.setString(7, photoFile);
+            ps.setString(8, role);
             ps.executeUpdate();
             try (ResultSet keys = ps.getGeneratedKeys()) {
                 return keys.next() ? keys.getInt(1) : -1;
@@ -155,15 +166,15 @@ public final class DatabaseManager {
         }
     }
 
-    /** READ: every staff row, as {id, name, gender, skillLevel, country, dateOfBirthIso, hobbies, photoFile}. */
+    /** READ: every staff row, as {id, name, gender, skillLevel, country, dateOfBirthIso, hobbies, photoFile, role}. */
     public static List<Object[]> readAllStaff() {
         List<Object[]> rows = new ArrayList<>();
         if (!available) return rows;
-        String sql = "SELECT id, name, gender, skill_level, country, date_of_birth, hobbies, photo_file FROM staff ORDER BY id";
+        String sql = "SELECT id, name, gender, skill_level, country, date_of_birth, hobbies, photo_file, role FROM staff ORDER BY id";
         try (Connection conn = connect(); Statement st = conn.createStatement(); ResultSet rs = st.executeQuery(sql)) {
             while (rs.next()) {
                 rows.add(new Object[]{ rs.getInt(1), rs.getString(2), rs.getString(3), rs.getString(4),
-                        rs.getString(5), rs.getString(6), rs.getString(7), rs.getString(8) });
+                        rs.getString(5), rs.getString(6), rs.getString(7), rs.getString(8), rs.getString(9) });
             }
         } catch (SQLException e) {
             System.err.println("[DatabaseManager] readAllStaff failed: " + e.getMessage());

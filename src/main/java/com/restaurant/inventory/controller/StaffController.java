@@ -51,8 +51,10 @@ public class StaffController implements Initializable {
     @FXML private TextField nameField;
     @FXML private ToggleGroup genderGroup;          // defined in FXML with <fx:define>
     @FXML private ToggleGroup skillGroup;           // defined in FXML with <fx:define>
+    @FXML private ToggleGroup roleGroup;            // defined in FXML with <fx:define>
     @FXML private RadioButton beginnerRadio;
     @FXML private Label genderLabel;
+    @FXML private Label roleLabel;
     @FXML private ComboBox<String> countryCombo;
     @FXML private DatePicker dobPicker;
     @FXML private Label dobLabel;
@@ -70,6 +72,7 @@ public class StaffController implements Initializable {
     // ---- table
     @FXML private TableView<Person> staffTable;
     @FXML private TableColumn<Person, String> nameCol;
+    @FXML private TableColumn<Person, String> roleCol;
     @FXML private TableColumn<Person, String> genderCol;
     @FXML private TableColumn<Person, String> skillCol;
     @FXML private TableColumn<Person, String> countryCol;
@@ -85,6 +88,7 @@ public class StaffController implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         setupTable();
         setupGender();
+        setupRole();
         setupSkillLevel();
         setupCountries();
         setupDatePicker();
@@ -101,6 +105,7 @@ public class StaffController implements Initializable {
         staffTable.setItems(service.getStaff());
 
         nameCol.setCellValueFactory(cell -> cell.getValue().nameProperty());
+        roleCol.setCellValueFactory(cell -> cell.getValue().roleProperty());
         genderCol.setCellValueFactory(cell -> cell.getValue().genderProperty());
         skillCol.setCellValueFactory(cell -> cell.getValue().skillLevelProperty());
         countryCol.setCellValueFactory(cell -> cell.getValue().countryProperty());
@@ -160,6 +165,18 @@ public class StaffController implements Initializable {
     /** Skill level: Beginner / Intermediate / Expert in a second ToggleGroup. */
     private void setupSkillLevel() {
         beginnerRadio.setSelected(true);   // default value
+    }
+
+    /** Role: Chef / Server - a third ToggleGroup, required just like gender (no default). */
+    private void setupRole() {
+        roleLabel.setText("Selected role: (none)");
+        roleGroup.selectedToggleProperty().addListener((observable, oldToggle, newToggle) -> {
+            if (newToggle == null) {
+                roleLabel.setText("Selected role: (none)");
+            } else {
+                roleLabel.setText("Selected role: " + ((RadioButton) newToggle).getText());
+            }
+        });
     }
 
     // ================================================================= COMBOBOX
@@ -239,6 +256,7 @@ public class StaffController implements Initializable {
         String name = nameField.getText().trim();
         Toggle gender = genderGroup.getSelectedToggle();
         Toggle skill = skillGroup.getSelectedToggle();
+        Toggle role = roleGroup.getSelectedToggle();
         String country = countryCombo.getValue();
         LocalDate dob = dobPicker.getValue();
 
@@ -249,6 +267,10 @@ public class StaffController implements Initializable {
         }
         if (gender == null) {
             AlertUtil.warning("Missing gender", "Please choose a gender.");
+            return;
+        }
+        if (role == null) {
+            AlertUtil.warning("Missing role", "Please choose a role (Chef or Server).");
             return;
         }
         if (country == null) {
@@ -283,7 +305,8 @@ public class StaffController implements Initializable {
                 country,
                 dob,
                 hobbies,
-                selectedPhotoName == null ? "-" : selectedPhotoName);
+                selectedPhotoName == null ? "-" : selectedPhotoName,
+                ((RadioButton) role).getText());
         service.addStaff(person);
 
         formMessageLabel.setText("Saved: " + name + " (password is not stored in this demo)");
@@ -293,6 +316,7 @@ public class StaffController implements Initializable {
     private void clearForm() {
         nameField.clear();
         genderGroup.selectToggle(null);
+        roleGroup.selectToggle(null);
         beginnerRadio.setSelected(true);
         countryCombo.setValue(null);
         dobPicker.setValue(null);

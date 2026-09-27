@@ -25,12 +25,20 @@
                     <fx:define>
                         <ToggleGroup fx:id="genderGroup"/>
                         <ToggleGroup fx:id="skillGroup"/>
+                        <ToggleGroup fx:id="roleGroup"/>
                     </fx:define>
 
                     <Label text="Register a staff member" styleClass="section-title"/>
 
                     <Label text="Name" styleClass="field-label"/>
                     <TextField fx:id="nameField" promptText="Full name"/>
+
+                    <Label text="Role (RadioButton)" styleClass="field-label"/>
+                    <HBox spacing="14">
+                        <RadioButton text="Chef" toggleGroup="$roleGroup"/>
+                        <RadioButton text="Server" toggleGroup="$roleGroup"/>
+                    </HBox>
+                    <Label fx:id="roleLabel" styleClass="info-label"/>
 
                     <Label text="Gender (RadioButton)" styleClass="field-label"/>
                     <HBox spacing="14">
@@ -101,6 +109,7 @@
             <TableView fx:id="staffTable" VBox.vgrow="ALWAYS">
                 <columns>
                     <TableColumn fx:id="nameCol" text="Name" prefWidth="140"/>
+                    <TableColumn fx:id="roleCol" text="Role" prefWidth="70"/>
                     <TableColumn fx:id="genderCol" text="Gender" prefWidth="70"/>
                     <TableColumn fx:id="skillCol" text="Skill" prefWidth="95"/>
                     <TableColumn fx:id="countryCol" text="Country" prefWidth="120"/>
