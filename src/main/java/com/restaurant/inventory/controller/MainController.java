@@ -41,7 +41,7 @@ public class MainController implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         String today = LocalDate.now().format(DateTimeFormatter.ofPattern("EEEE, dd MMMM yyyy"));
-        welcomeLabel.setText("Restaurant Menu Inventory  -  " + today);
+        welcomeLabel.setText("Welcome to Pavillion 22 Restaurant  -  " + today);
 
         // The status bar always shows what is out of stock (updates by itself).
         statusLabel.textProperty().bind(service.stockAlertProperty());

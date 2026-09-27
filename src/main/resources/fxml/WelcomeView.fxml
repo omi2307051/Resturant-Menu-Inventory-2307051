@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.effect.GaussianBlur?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.Circle?>
+<?import javafx.scene.shape.Line?>
+
+<!--
+    Front / splash page shown before the main tabbed window.
+    Pure JavaFX shapes are used for the logo medallion (a soft glow + double
+    ring + monogram) so the app stays fully self-contained - no external
+    image asset is required.
+-->
+<StackPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="com.restaurant.inventory.controller.WelcomeController"
+           styleClass="page-welcome">
+
+    <!-- soft ambient glow sitting behind everything, centred on the medallion -->
+    <Circle fx:id="glowCircle" radius="230" styleClass="welcome-glow">
+        <effect>
+            <GaussianBlur radius="80"/>
+        </effect>
+    </Circle>
+
+    <!-- thin gold frame near the window edge, for a menu-card feel -->
+    <Region styleClass="welcome-frame" mouseTransparent="true"
+            maxWidth="Infinity" maxHeight="Infinity">
+        <StackPane.margin>
+            <Insets top="26" right="26" bottom="26" left="26"/>
+        </StackPane.margin>
+    </Region>
+
+    <VBox fx:id="cardBox" alignment="CENTER" spacing="16" maxWidth="620">
+        <padding>
+            <Insets top="30" right="50" bottom="40" left="50"/>
+        </padding>
+
+        <Label text="EST. FINE DINING" styleClass="welcome-eyebrow"/>
+
+        <!-- Logo medallion -->
+        <StackPane>
+            <Circle radius="80" styleClass="logo-ring-outer"/>
+            <Circle radius="70" styleClass="logo-ring"/>
+            <Circle radius="60" styleClass="logo-circle"/>
+            <Circle radius="60" styleClass="logo-shine"/>
+            <Label text="P22" styleClass="logo-text"/>
+        </StackPane>
+
+        <!-- Restaurant name -->
+        <Label text="PAVILLION 22" styleClass="restaurant-name"
+               textAlignment="CENTER" wrapText="true">
+            <VBox.margin>
+                <Insets top="14"/>
+            </VBox.margin>
+        </Label>
+        <Label text="R E S T A U R A N T" styleClass="restaurant-name-sub"
+               textAlignment="CENTER"/>
+
+        <!-- Decorative divider -->
+        <HBox alignment="CENTER" spacing="12">
+            <Line startX="0" endX="70" styleClass="welcome-divider"/>
+            <Label text="&#10022;" styleClass="divider-dot"/>
+            <Line startX="0" endX="70" styleClass="welcome-divider"/>
+        </HBox>
+
+        <!-- Tagline -->
+        <Label text="Where Taste Meets Tradition" styleClass="restaurant-tagline"/>
+
+        <!-- Enter button -->
+        <Button fx:id="enterButton" text="ENTER  RESTAURANT" styleClass="enter-button"
+                onAction="#onEnterClicked">
+            <VBox.margin>
+                <Insets top="30"/>
+            </VBox.margin>
+        </Button>
+
+        <Label text="Fine Dining Management System" styleClass="welcome-footer">
+            <VBox.margin>
+                <Insets top="18"/>
+            </VBox.margin>
+        </Label>
+    </VBox>
+
+</StackPane>

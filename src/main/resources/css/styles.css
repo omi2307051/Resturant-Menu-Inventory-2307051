@@ -20,6 +20,123 @@
     -fx-background-color: transparent;
 }
 
+/* ------------------------------------------------------- welcome / front page */
+.page-welcome {
+    -fx-background-color:
+        radial-gradient(center 50% 35%, radius 75%, #fffdf7 0%, #fff3e0 55%, #ffe0b2 100%);
+}
+
+/* thin gold frame set in a little from the window edge - "menu card" feel */
+.welcome-frame {
+    -fx-border-color: #d4a24c;
+    -fx-border-width: 1.5;
+    -fx-border-style: solid;
+    -fx-opacity: 0.55;
+}
+
+/* soft warm halo sitting behind the medallion (breathes via animation) */
+.welcome-glow {
+    -fx-fill: radial-gradient(center 50% 50%, radius 60%, rgba(255,183,77,0.45) 0%, rgba(255,183,77,0) 70%);
+}
+
+.welcome-eyebrow {
+    -fx-font-family: "Segoe UI", "Arial", sans-serif;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #b5762a;
+    -fx-opacity: 0.9;
+}
+
+.logo-ring-outer {
+    -fx-fill: transparent;
+    -fx-stroke: #d4a24c;
+    -fx-stroke-width: 1;
+    -fx-opacity: 0.55;
+}
+
+.logo-ring {
+    -fx-fill: transparent;
+    -fx-stroke: #ffb300;
+    -fx-stroke-width: 2;
+}
+
+.logo-circle {
+    -fx-fill: radial-gradient(center 35% 30%, radius 75%, #fff3d6 0%, #ffca28 45%, #ef6c00 100%);
+    -fx-stroke: #ffffff;
+    -fx-stroke-width: 3;
+    -fx-effect: dropshadow(gaussian, rgba(191,120,0,0.35), 20, 0.25, 0, 8);
+}
+
+/* faint diagonal highlight over the medallion for a glossy, dimensional look */
+.logo-shine {
+    -fx-fill: linear-gradient(to bottom right, rgba(255,255,255,0.65) 0%, rgba(255,255,255,0) 45%);
+}
+
+.logo-text {
+    -fx-font-family: "Georgia", "Times New Roman", serif;
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #5d3a00;
+}
+
+.restaurant-name {
+    -fx-font-family: "Georgia", "Times New Roman", serif;
+    -fx-font-size: 46px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #6d3b12;
+    -fx-effect: dropshadow(gaussian, rgba(255,255,255,0.8), 2, 0.4, 0, 1);
+}
+
+.restaurant-name-sub {
+    -fx-font-family: "Georgia", "Times New Roman", serif;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #b5762a;
+    -fx-padding: -10 0 0 0;
+}
+
+.welcome-divider {
+    -fx-stroke: #d4a24c;
+    -fx-stroke-width: 1.2;
+    -fx-opacity: 0.8;
+}
+
+.divider-dot {
+    -fx-text-fill: #d4a24c;
+    -fx-font-size: 13px;
+}
+
+.restaurant-tagline {
+    -fx-font-family: "Georgia", "Times New Roman", serif;
+    -fx-font-size: 19px;
+    -fx-font-style: italic;
+    -fx-text-fill: #8a5a2b;
+}
+
+.enter-button {
+    -fx-background-color: linear-gradient(to bottom, #ffca28, #f57c00);
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-background-radius: 26;
+    -fx-padding: 12 40 12 40;
+    -fx-effect: dropshadow(gaussian, rgba(191,120,0,0.35), 12, 0.2, 0, 4);
+    -fx-cursor: hand;
+}
+.enter-button:hover {
+    -fx-background-color: linear-gradient(to bottom, #ffb300, #e65100);
+    -fx-effect: dropshadow(gaussian, rgba(255,152,0,0.55), 20, 0.35, 0, 0);
+}
+.enter-button:pressed {
+    -fx-background-color: linear-gradient(to bottom, #e65100, #bf360c);
+}
+
+.welcome-footer {
+    -fx-text-fill: #9c7b4f;
+    -fx-font-size: 11px;
+    -fx-font-style: italic;
+}
+
 /* ---------------------------------------------------------------- top bar */
 .top-bar {
     -fx-background-color: linear-gradient(to right, #ff7043, #ffca28);
