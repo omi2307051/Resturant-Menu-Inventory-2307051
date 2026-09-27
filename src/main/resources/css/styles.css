@@ -182,10 +182,6 @@
     -fx-background-color: #f5f5f5;
     -fx-border-color: #bdbdbd;
 }
-.dish-frame.cat-starters  { -fx-background-color: #fff3e0; -fx-border-color: #ff9800; }
-.dish-frame.cat-main      { -fx-background-color: #ffebee; -fx-border-color: #e53935; }
-.dish-frame.cat-foreign   { -fx-background-color: #f3e5f5; -fx-border-color: #8e24aa; }
-.dish-frame.cat-drinks    { -fx-background-color: #e0f7fa; -fx-border-color: #00acc1; }
 .dish-frame.cat-desserts  { -fx-background-color: #fce4ec; -fx-border-color: #ec407a; }
 .dish-frame.cat-biryani      { -fx-background-color: #fff3cd; -fx-border-color: #e8a33d; }
 .dish-frame.cat-chicken      { -fx-background-color: #fde0d9; -fx-border-color: #e8590c; }
@@ -203,34 +199,6 @@
 .dish-frame.cat-hotbeverages { -fx-background-color: #efe6dd; -fx-border-color: #795548; }
 
 /* ------------------------------------------------- category colours (list rows) */
-.list-cell.cat-starters {
-    -fx-background-color: linear-gradient(to right, #fff8e1, #ffe0b2);
-    -fx-border-color: transparent transparent transparent #ff9800;
-    -fx-border-width: 0 0 0 6;
-    -fx-text-fill: #6d4c00;
-    -fx-font-weight: bold;
-}
-.list-cell.cat-main {
-    -fx-background-color: linear-gradient(to right, #ffebee, #ffcdd2);
-    -fx-border-color: transparent transparent transparent #e53935;
-    -fx-border-width: 0 0 0 6;
-    -fx-text-fill: #7f0000;
-    -fx-font-weight: bold;
-}
-.list-cell.cat-foreign {
-    -fx-background-color: linear-gradient(to right, #f3e5f5, #e1bee7);
-    -fx-border-color: transparent transparent transparent #8e24aa;
-    -fx-border-width: 0 0 0 6;
-    -fx-text-fill: #4a148c;
-    -fx-font-weight: bold;
-}
-.list-cell.cat-drinks {
-    -fx-background-color: linear-gradient(to right, #e0f7fa, #b2ebf2);
-    -fx-border-color: transparent transparent transparent #00acc1;
-    -fx-border-width: 0 0 0 6;
-    -fx-text-fill: #006064;
-    -fx-font-weight: bold;
-}
 .list-cell.cat-desserts {
     -fx-background-color: linear-gradient(to right, #fce4ec, #f8bbd0);
     -fx-border-color: transparent transparent transparent #ec407a;
@@ -318,10 +286,6 @@
 }
 
 /* same category colours, used for tree-cell text on the Menu tab */
-.tree-cell.cat-starters  { -fx-text-fill: #e65100; -fx-font-weight: bold; }
-.tree-cell.cat-main      { -fx-text-fill: #c62828; -fx-font-weight: bold; }
-.tree-cell.cat-foreign   { -fx-text-fill: #6a1b9a; -fx-font-weight: bold; }
-.tree-cell.cat-drinks    { -fx-text-fill: #00838f; -fx-font-weight: bold; }
 .tree-cell.cat-desserts  { -fx-text-fill: #ad1457; -fx-font-weight: bold; }
 .tree-cell.cat-biryani       { -fx-text-fill: #7a4f01; -fx-font-weight: bold; }
 .tree-cell.cat-chicken       { -fx-text-fill: #8a2e00; -fx-font-weight: bold; }

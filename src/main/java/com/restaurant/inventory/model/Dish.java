@@ -23,13 +23,9 @@ public class Dish extends MenuItem implements Reportable {
             "brownie.png", "sundae.png", "gulab_jamun.png");
 
     /** Category names used everywhere (menu tree, colour theme, daily discount rules). */
-    public static final String CAT_STARTERS = "Starters";
-    public static final String CAT_MAIN = "Main Course";
-    public static final String CAT_FOREIGN = "Foreign";
-    public static final String CAT_DRINKS = "Drinks";
     public static final String CAT_DESSERTS = "Desserts";
 
-    // ---- categories added for the expanded Bangladeshi restaurant menu ----------------
+    // ---- full restaurant menu categories ----------------------------------------------
     public static final String CAT_BIRYANI = "Biryani & Rice";
     public static final String CAT_CHICKEN = "Chicken Specials";
     public static final String CAT_BEEF_MUTTON = "Beef & Mutton";
@@ -44,6 +40,12 @@ public class Dish extends MenuItem implements Reportable {
     public static final String CAT_COLD_DRINKS = "Cold Drinks";
     public static final String CAT_MILKSHAKES = "Milkshakes & Special Drinks";
     public static final String CAT_HOT_BEVERAGES = "Hot Beverages";
+
+    /** Every CSS style class returned by {@link #categoryStyleClass}, for controllers that need to clear them all at once. */
+    public static final List<String> ALL_CATEGORY_STYLE_CLASSES = List.of(
+            "cat-desserts", "cat-biryani", "cat-chicken", "cat-beefmutton", "cat-burgers",
+            "cat-pizza", "cat-chinese", "cat-appetizers", "cat-soup", "cat-mexican",
+            "cat-international", "cat-salad", "cat-colddrinks", "cat-milkshakes", "cat-hotbeverages");
 
     private String imageName;
     private final List<RecipeLine> recipe = new ArrayList<>();
@@ -99,12 +101,8 @@ public class Dish extends MenuItem implements Reportable {
 
     /** CSS style class (see styles.css) used to give this dish's category its own colour theme. */
     public static String categoryStyleClass(String category) {
-        if (category == null) return "cat-main";
+        if (category == null) return "cat-international";
         return switch (category) {
-            case CAT_STARTERS -> "cat-starters";
-            case CAT_MAIN -> "cat-main";
-            case CAT_FOREIGN -> "cat-foreign";
-            case CAT_DRINKS -> "cat-drinks";
             case CAT_DESSERTS -> "cat-desserts";
             case CAT_BIRYANI -> "cat-biryani";
             case CAT_CHICKEN -> "cat-chicken";
@@ -120,7 +118,7 @@ public class Dish extends MenuItem implements Reportable {
             case CAT_COLD_DRINKS -> "cat-colddrinks";
             case CAT_MILKSHAKES -> "cat-milkshakes";
             case CAT_HOT_BEVERAGES -> "cat-hotbeverages";
-            default -> "cat-main";
+            default -> "cat-international";
         };
     }
 

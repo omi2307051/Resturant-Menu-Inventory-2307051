@@ -121,8 +121,8 @@ public class OrderController implements Initializable {
         @Override
         protected void updateItem(Dish dish, boolean empty) {
             super.updateItem(dish, empty);
-            getStyleClass().removeAll("cat-starters", "cat-main", "cat-foreign",
-                    "cat-drinks", "cat-desserts", "out-of-stock-cell");
+            getStyleClass().removeAll(Dish.ALL_CATEGORY_STYLE_CLASSES);
+            getStyleClass().remove("out-of-stock-cell");
             if (empty || dish == null) {
                 setText(null);
                 return;
@@ -298,7 +298,7 @@ public class OrderController implements Initializable {
     // ================================================================= SELECTED DISH VIEW
 
     private void showDish(Dish dish) {
-        dishImageFrame.getStyleClass().removeAll("cat-starters", "cat-main", "cat-foreign", "cat-drinks", "cat-desserts");
+        dishImageFrame.getStyleClass().removeAll(Dish.ALL_CATEGORY_STYLE_CLASSES);
         if (dish == null) {
             dishImage.setImage(null);
             recipeTable.setItems(FXCollections.observableArrayList());

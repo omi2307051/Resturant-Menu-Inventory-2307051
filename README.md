@@ -74,11 +74,12 @@ restaurant_inventory.db          created automatically on first run (SQLite data
 
 ## Try this demo flow
 
-1. **Orders** > select *Cheeseburger*, quantity 6 > **Place Order**. Beef Patty hits 0, a warning appears,
-   the dish turns red and the status bar lists what is out of stock.
-2. Set quantity 7 and order again - an error alert says which ingredient is short.
-3. Order *Mango Shake* x2: Mango drops to 1, so the shake becomes unavailable even though Mango is not at 0.
-4. **Inventory** > click *Beef Patty*, type `10` > **Restock**. The Cheeseburger is available again.
+1. **Orders** > select *Special House Burger*, quantity 3 > **Place Order**. Beef Patty hits 0, a warning
+   appears, the dish turns red and the status bar lists what is out of stock.
+2. Set quantity 1 and order again - an error alert says which ingredient is short.
+3. Order *Beef Steak* x6: Beef Steak Cut drops low/out, so other beef dishes that share it
+   (Adana Kebab, Beef Nihari, Special House Pizza, Lasagna) become unavailable too.
+4. **Inventory** > click *Beef Patty*, type `10` > **Restock**. The Special House Burger is available again.
 5. **Inventory** > type `5` in the Accumulate box and press the button 5 times: the bar fills up.
 6. **File > New** resets the day; **File > Open...** with `sample-stock.csv` loads new stock levels.
 

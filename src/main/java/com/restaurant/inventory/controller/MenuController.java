@@ -76,7 +76,7 @@ public class MenuController implements Initializable {
             @Override
             protected void updateItem(String value, boolean empty) {
                 super.updateItem(value, empty);
-                getStyleClass().removeAll("cat-starters", "cat-main", "cat-foreign", "cat-drinks", "cat-desserts");
+                getStyleClass().removeAll(Dish.ALL_CATEGORY_STYLE_CLASSES);
                 if (empty || value == null) {
                     setText(null);
                     return;

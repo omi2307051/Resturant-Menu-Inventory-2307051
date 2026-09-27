@@ -396,227 +396,323 @@ public final class InventoryService {
 
 
 
-    /** Sample data so the app is useful the first time you run it. */
+    /**
+     * Sample data so the app is useful the first time you run it.
+     *
+     * This is the restaurant's full published menu (15 sections). Most items are "simple"
+     * dishes with no recipe, so they are always orderable - tracking a stock recipe for
+     * every single item on a 190-item menu is not realistic. The 12 dishes marked as the
+     * restaurant's own "Chef's Special" board DO have a real recipe (so ordering one
+     * deducts ingredients and can show "out of stock"), plus 3 bonus non-special dishes
+     * (Margherita Pizza, Chicken Alfredo Pasta, Mutton Mandi) kept recipe-tracked for variety.
+     */
     private void seedData() {
-        // ---- ingredients --------------------------------------------------------------
-        Ingredient patty      = stock("Beef Patty",      "pcs", 6,    2);
-        Ingredient bun         = stock("Burger Bun",      "pcs", 10,   2);
-        Ingredient cheese      = stock("Cheese Slice",    "pcs", 12,   3);
-        Ingredient lettuce     = stock("Lettuce",         "g",   800,  150);
-        Ingredient tomato      = stock("Tomato",          "g",   1500, 300);
-        Ingredient cucumber    = stock("Cucumber",        "g",   600,  150);
-        Ingredient dough       = stock("Pizza Dough",     "pcs", 8,    2);
-        Ingredient mozzarella  = stock("Mozzarella",      "g",   1200, 300);
-        Ingredient sauce       = stock("Tomato Sauce",    "ml",  1000, 200);
-        Ingredient spaghetti   = stock("Spaghetti",       "g",   2000, 400);
-        Ingredient chicken     = stock("Chicken",         "g",   1500, 300);
-        Ingredient cream       = stock("Cream",           "ml",  1200, 250);
-        Ingredient milk        = stock("Milk",            "ml",  3000, 600);
-        Ingredient orange      = stock("Orange",          "pcs", 12,   3);
-        Ingredient mango       = stock("Mango",           "pcs", 5,    2);
-        Ingredient apple       = stock("Apple",           "pcs", 10,   3);
-        Ingredient butter      = stock("Butter",          "g",   500,  100);
+        // ---- ingredients (only what the recipe-tracked dishes below actually need) -----
+        Ingredient basmatiRice   = stock("Basmati Rice",     "g",   3000, 500);
+        Ingredient muttonMeat    = stock("Mutton",           "g",   1500, 300);
+        Ingredient yogurt        = stock("Yogurt",           "ml",  1000, 200);
+        Ingredient onion         = stock("Onion",            "g",   1500, 300);
+        Ingredient beefCut       = stock("Beef Steak Cut",   "g",   1500, 300);
+        Ingredient butter        = stock("Butter",           "g",   500,  100);
+        Ingredient blackPepper   = stock("Black Pepper",     "g",   150,  30);
+        Ingredient patty         = stock("Beef Patty",       "pcs", 6,    2);
+        Ingredient bun           = stock("Burger Bun",       "pcs", 10,   2);
+        Ingredient cheese        = stock("Cheese Slice",     "pcs", 12,   3);
+        Ingredient dough         = stock("Pizza Dough",      "pcs", 8,    2);
+        Ingredient mozzarella    = stock("Mozzarella",       "g",   1200, 300);
+        Ingredient sauce         = stock("Tomato Sauce",     "ml",  1000, 200);
+        Ingredient chicken       = stock("Chicken",          "g",   1500, 300);
+        Ingredient coconutMilk   = stock("Coconut Milk",     "ml",  1000, 200);
+        Ingredient curryPaste    = stock("Green Curry Paste","g",   300,  60);
+        Ingredient ghee          = stock("Ghee",             "g",   300,  60);
+        Ingredient kunafaDough   = stock("Kunafa Dough",     "g",   500,  100);
+        Ingredient sugarSyrup    = stock("Sugar Syrup",      "ml",  500,  100);
+        Ingredient tomato        = stock("Tomato",           "g",   1500, 300);
+        Ingredient cream         = stock("Cream",            "ml",  1200, 250);
+        Ingredient ramenNoodles  = stock("Ramen Noodles",    "g",   1200, 250);
+        Ingredient soySauce      = stock("Soy Sauce",        "ml",  600,  120);
+        Ingredient egg           = stock("Egg",              "pcs", 24,   6);
+        Ingredient spaghetti     = stock("Spaghetti",        "g",   2000, 400);
+        Ingredient lasagnaSheets = stock("Lasagna Sheets",   "pcs", 40,   10);
 
-        // ---- new ingredients for appetizers / desserts / foreign dishes ---------------
-        Ingredient cabbage       = stock("Cabbage",            "g",   500,  100);
-        Ingredient carrot        = stock("Carrot",             "g",   500,  100);
-        Ingredient rollWrapper   = stock("Spring Roll Wrapper", "pcs", 24,   6);
-        Ingredient chickenWing   = stock("Chicken Wings",       "pcs", 24,   6);
-        Ingredient wingSauce     = stock("Wing Sauce",          "ml",  400,  80);
-        Ingredient potato        = stock("Potato",             "g",   2000, 300);
-        Ingredient greenPea      = stock("Green Peas",          "g",   400,  80);
-        Ingredient samosaWrapper = stock("Samosa Wrapper",      "pcs", 18,   6);
-        Ingredient flour         = stock("Flour",               "g",   1500, 300);
-        Ingredient chocolate     = stock("Chocolate",           "g",   600,  120);
-        Ingredient egg           = stock("Egg",                 "pcs", 24,   6);
-        Ingredient iceCream      = stock("Ice Cream",           "g",   1200, 250);
-        Ingredient chocSyrup     = stock("Chocolate Syrup",     "ml",  400,  80);
-        Ingredient nuts          = stock("Mixed Nuts",          "g",   300,  60);
-        Ingredient milkPowder    = stock("Milk Powder",         "g",   500,  100);
-        Ingredient sugarSyrup    = stock("Sugar Syrup",         "ml",  500,  100);
-        Ingredient ghee          = stock("Ghee",                "g",   300,  60);
-        Ingredient sushiRice     = stock("Sushi Rice",          "g",   1200, 250);
-        Ingredient nori          = stock("Nori Sheet",          "pcs", 20,   5);
-        Ingredient salmon        = stock("Salmon",              "g",   800,  150);
-        Ingredient wasabi        = stock("Wasabi",              "g",   100,  20);
-        Ingredient beefCut       = stock("Beef Steak Cut",      "g",   1500, 300);
-        Ingredient blackPepper   = stock("Black Pepper",        "g",   150,  30);
-        Ingredient coconutMilk   = stock("Coconut Milk",        "ml",  1000, 200);
-        Ingredient curryPaste    = stock("Green Curry Paste",   "g",   300,  60);
-        Ingredient tortilla      = stock("Tortilla",            "pcs", 18,   6);
-        Ingredient salsa         = stock("Salsa",               "ml",  500,  100);
-        Ingredient cheddar       = stock("Cheddar Cheese",      "g",   500,  100);
-
-        // ---- new ingredients for the expanded Bangladeshi menu (chef's-special dishes) -
-        Ingredient basmatiRice   = stock("Basmati Rice",         "g",   3000, 500);
-        Ingredient muttonMeat    = stock("Mutton",               "g",   1500, 300);
-        Ingredient yogurt        = stock("Yogurt",               "ml",  1000, 200);
-        Ingredient onion         = stock("Onion",                "g",   1500, 300);
-        Ingredient ramenNoodles  = stock("Ramen Noodles",        "g",   1200, 250);
-        Ingredient soySauce      = stock("Soy Sauce",            "ml",  600,  120);
-        Ingredient kunafaDough   = stock("Kunafa Dough",         "g",   500,  100);
-
-        // ---- STARTERS -------------------------------------------------------------------
-        dishes.add(new Dish("Garden Salad", Dish.CAT_STARTERS, 180.00, "salad.png")
-                .needs(lettuce, 100).needs(tomato, 80).needs(cucumber, 60));
-        dishes.add(new Dish("Tomato Soup", Dish.CAT_STARTERS, 150.00, "soup.png")
-                .needs(tomato, 200).needs(cream, 30));
-        dishes.add(new Dish("Spring Rolls", Dish.CAT_STARTERS, 160.00, "spring_rolls.png")
-                .needs(cabbage, 80).needs(carrot, 40).needs(rollWrapper, 4));
-        dishes.add(new Dish("Chicken Wings", Dish.CAT_STARTERS, 220.00, "chicken_wings.png")
-                .needs(chickenWing, 6).needs(wingSauce, 40));
-        dishes.add(new Dish("Vegetable Samosa", Dish.CAT_STARTERS, 130.00, "veg_samosa.png")
-                .needs(potato, 120).needs(greenPea, 40).needs(samosaWrapper, 3));
-
-        // ---- MAIN COURSE ------------------------------------------------------------------
-        dishes.add(new Dish("Cheeseburger", Dish.CAT_MAIN, 320.00, "burger.png")
-                .needs(patty, 1).needs(bun, 1).needs(cheese, 1).needs(lettuce, 30).needs(tomato, 40));
-        dishes.add(new Dish("Margherita Pizza", Dish.CAT_MAIN, 420.00, "pizza.png")
-                .needs(dough, 1).needs(mozzarella, 150).needs(sauce, 80));
-        dishes.add(new Dish("Chicken Alfredo Pasta", Dish.CAT_MAIN, 380.00, "pasta.png")
-                .needs(spaghetti, 200).needs(chicken, 150).needs(cream, 100).special());
-
-        // ---- FOREIGN DISHES ---------------------------------------------------------------
-        dishes.add(new Dish("Sushi Platter", Dish.CAT_FOREIGN, 480.00, "sushi_platter.png")
-                .needs(sushiRice, 150).needs(nori, 3).needs(salmon, 100).needs(wasabi, 5).special());
-        dishes.add(new Dish("Beef Steak", Dish.CAT_FOREIGN, 650.00, "beef_steak.png")
-                .needs(beefCut, 250).needs(butter, 20).needs(blackPepper, 5));
-        dishes.add(new Dish("Thai Green Curry", Dish.CAT_FOREIGN, 400.00, "thai_curry.png")
-                .needs(chicken, 200).needs(coconutMilk, 200).needs(curryPaste, 40));
-        dishes.add(new Dish("Mexican Tacos", Dish.CAT_FOREIGN, 350.00, "mexican_tacos.png")
-                .needs(tortilla, 3).needs(beefCut, 120).needs(salsa, 60).needs(cheddar, 40));
-
-        // ---- DRINKS -------------------------------------------------------------------------
-        dishes.add(new Dish("Orange Juice", Dish.CAT_DRINKS, 130.00, "juice.png")
-                .needs(orange, 3));
-        dishes.add(new Dish("Mango Shake", Dish.CAT_DRINKS, 150.00, "mango_shake.png")
-                .needs(mango, 2).needs(milk, 250).special());
-
-        // ---- DESSERTS -----------------------------------------------------------------------
-        dishes.add(new Dish("Fruit Salad", Dish.CAT_DESSERTS, 170.00, "dessert.png")
-                .needs(mango, 1).needs(orange, 1).needs(apple, 1));
-        dishes.add(new Dish("Chocolate Brownie", Dish.CAT_DESSERTS, 190.00, "brownie.png")
-                .needs(flour, 80).needs(chocolate, 60).needs(butter, 30).needs(egg, 1));
-        dishes.add(new Dish("Ice Cream Sundae", Dish.CAT_DESSERTS, 210.00, "sundae.png")
-                .needs(iceCream, 150).needs(chocSyrup, 30).needs(nuts, 15));
-        dishes.add(new Dish("Gulab Jamun", Dish.CAT_DESSERTS, 140.00, "gulab_jamun.png")
-                .needs(milkPowder, 100).needs(sugarSyrup, 80).needs(ghee, 20));
-
-        // Extra dessert options from the full menu (simple - no recipe/inventory tracking).
-        dishes.add(new Dish("Cheesecake", Dish.CAT_DESSERTS, 250.00, "dessert.png"));
-        dishes.add(new Dish("Red Velvet Cake", Dish.CAT_DESSERTS, 180.00, "brownie.png"));
-        dishes.add(new Dish("Falooda", Dish.CAT_DESSERTS, 180.00, "sundae.png"));
-        dishes.add(new Dish("Chocolate Lava Cake", Dish.CAT_DESSERTS, 220.00, "brownie.png")
-                .needs(chocolate, 80).needs(flour, 50).needs(butter, 40).needs(egg, 2).special());
-
-        // ============================ EXPANDED MENU (customer-supplied menu) ==============
-        // Trimmed to ~4-6 items per section. Popular / Chef's Special dishes get a real
-        // recipe (so ordering them deducts stock, like the sample dishes above); the rest
-        // are "simple" dishes with no recipe, so they are always orderable (no inventory
-        // tracking needed for every single item on a 200+ item menu).
-
-        // ---- BIRYANI & RICE ---------------------------------------------------------------
+        // ================================================================================
+        // 1. BIRYANI & RICE
+        // ================================================================================
         dishes.add(new Dish("Chicken Biryani", Dish.CAT_BIRYANI, 250.00, "thai_curry.png"));
+        dishes.add(new Dish("Beef Biryani", Dish.CAT_BIRYANI, 280.00, "thai_curry.png"));
         dishes.add(new Dish("Kacchi Biryani", Dish.CAT_BIRYANI, 320.00, "thai_curry.png")
                 .needs(basmatiRice, 200).needs(muttonMeat, 200).needs(yogurt, 50).needs(onion, 30).special());
+        dishes.add(new Dish("Mutton Kacchi", Dish.CAT_BIRYANI, 380.00, "thai_curry.png"));
+        dishes.add(new Dish("Chicken Tehari", Dish.CAT_BIRYANI, 220.00, "thai_curry.png"));
         dishes.add(new Dish("Beef Tehari", Dish.CAT_BIRYANI, 260.00, "thai_curry.png"));
         dishes.add(new Dish("Chicken Fried Rice", Dish.CAT_BIRYANI, 220.00, "thai_curry.png"));
+        dishes.add(new Dish("Egg Fried Rice", Dish.CAT_BIRYANI, 180.00, "thai_curry.png"));
         dishes.add(new Dish("Plain Rice", Dish.CAT_BIRYANI, 80.00, "thai_curry.png"));
+        dishes.add(new Dish("Special Fried Rice", Dish.CAT_BIRYANI, 320.00, "thai_curry.png"));
 
-        // ---- CHICKEN SPECIALS ---------------------------------------------------------------
+        // ================================================================================
+        // 2. CHICKEN SPECIALS
+        // ================================================================================
         dishes.add(new Dish("Grilled Chicken", Dish.CAT_CHICKEN, 320.00, "chicken_wings.png"));
         dishes.add(new Dish("BBQ Chicken", Dish.CAT_CHICKEN, 350.00, "chicken_wings.png"));
+        dishes.add(new Dish("Chicken Shashlik", Dish.CAT_CHICKEN, 280.00, "chicken_wings.png"));
         dishes.add(new Dish("Chicken Tandoori", Dish.CAT_CHICKEN, 300.00, "chicken_wings.png"));
         dishes.add(new Dish("Chicken Roast", Dish.CAT_CHICKEN, 280.00, "chicken_wings.png"));
+        dishes.add(new Dish("Chicken Curry", Dish.CAT_CHICKEN, 240.00, "chicken_wings.png"));
         dishes.add(new Dish("Crispy Fried Chicken", Dish.CAT_CHICKEN, 220.00, "chicken_wings.png"));
+        dishes.add(new Dish("Chicken Steak", Dish.CAT_CHICKEN, 380.00, "chicken_wings.png"));
+        dishes.add(new Dish("Sweet & Sour Chicken", Dish.CAT_CHICKEN, 300.00, "chicken_wings.png"));
 
-        // ---- BEEF & MUTTON ---------------------------------------------------------------
+        // ================================================================================
+        // 3. BEEF & MUTTON
+        // ================================================================================
+        dishes.add(new Dish("Beef Steak", Dish.CAT_BEEF_MUTTON, 450.00, "beef_steak.png")
+                .needs(beefCut, 250).needs(butter, 20).needs(blackPepper, 5).special());
         dishes.add(new Dish("Beef Kala Bhuna", Dish.CAT_BEEF_MUTTON, 350.00, "beef_steak.png"));
         dishes.add(new Dish("Beef Curry", Dish.CAT_BEEF_MUTTON, 280.00, "beef_steak.png"));
+        dishes.add(new Dish("Beef Masala", Dish.CAT_BEEF_MUTTON, 300.00, "beef_steak.png"));
+        dishes.add(new Dish("Beef Shashlik", Dish.CAT_BEEF_MUTTON, 350.00, "beef_steak.png"));
         dishes.add(new Dish("Mutton Curry", Dish.CAT_BEEF_MUTTON, 350.00, "beef_steak.png"));
+        dishes.add(new Dish("Mutton Bhuna", Dish.CAT_BEEF_MUTTON, 380.00, "beef_steak.png"));
         dishes.add(new Dish("Mutton Rezala", Dish.CAT_BEEF_MUTTON, 360.00, "beef_steak.png"));
         dishes.add(new Dish("Mutton Korma", Dish.CAT_BEEF_MUTTON, 380.00, "beef_steak.png"));
 
-        // ---- BURGERS ---------------------------------------------------------------------
+        // ================================================================================
+        // 4. BURGERS
+        // ================================================================================
         dishes.add(new Dish("Crispy Chicken Burger", Dish.CAT_BURGERS, 250.00, "burger.png"));
         dishes.add(new Dish("BBQ Chicken Burger", Dish.CAT_BURGERS, 280.00, "burger.png"));
+        dishes.add(new Dish("Spicy Chicken Burger", Dish.CAT_BURGERS, 270.00, "burger.png"));
+        dishes.add(new Dish("Chicken Cheese Burger", Dish.CAT_BURGERS, 300.00, "burger.png"));
+        dishes.add(new Dish("Beef Burger", Dish.CAT_BURGERS, 280.00, "burger.png"));
         dishes.add(new Dish("Beef Cheese Burger", Dish.CAT_BURGERS, 320.00, "burger.png"));
         dishes.add(new Dish("Double Beef Burger", Dish.CAT_BURGERS, 380.00, "burger.png"));
+        dishes.add(new Dish("Double Chicken Burger", Dish.CAT_BURGERS, 350.00, "burger.png"));
+        dishes.add(new Dish("Mushroom Burger", Dish.CAT_BURGERS, 300.00, "burger.png"));
+        dishes.add(new Dish("BBQ Beef Burger", Dish.CAT_BURGERS, 350.00, "burger.png"));
         dishes.add(new Dish("Special House Burger", Dish.CAT_BURGERS, 420.00, "burger.png")
-                .needs(patty, 2).needs(bun, 1).needs(cheese, 2).needs(lettuce, 30).needs(tomato, 40).needs(onion, 20).special());
+                .needs(patty, 2).needs(bun, 1).needs(cheese, 2).needs(onion, 20).special());
 
-        // ---- PIZZA -------------------------------------------------------------------------
+        // ================================================================================
+        // 5. PIZZA
+        // ================================================================================
+        dishes.add(new Dish("Margherita Pizza", Dish.CAT_PIZZA, 350.00, "pizza.png")
+                .needs(dough, 1).needs(mozzarella, 150).needs(sauce, 80));
         dishes.add(new Dish("Chicken Pizza", Dish.CAT_PIZZA, 420.00, "pizza.png"));
         dishes.add(new Dish("BBQ Chicken Pizza", Dish.CAT_PIZZA, 480.00, "pizza.png"));
+        dishes.add(new Dish("Beef Pizza", Dish.CAT_PIZZA, 450.00, "pizza.png"));
         dishes.add(new Dish("Pepperoni Pizza", Dish.CAT_PIZZA, 500.00, "pizza.png"));
+        dishes.add(new Dish("Cheese Lovers Pizza", Dish.CAT_PIZZA, 450.00, "pizza.png"));
+        dishes.add(new Dish("Mushroom Pizza", Dish.CAT_PIZZA, 400.00, "pizza.png"));
+        dishes.add(new Dish("Mexican Pizza", Dish.CAT_PIZZA, 480.00, "pizza.png"));
+        dishes.add(new Dish("Spicy Chicken Pizza", Dish.CAT_PIZZA, 450.00, "pizza.png"));
         dishes.add(new Dish("Seafood Pizza", Dish.CAT_PIZZA, 550.00, "pizza.png"));
+        dishes.add(new Dish("Four Cheese Pizza", Dish.CAT_PIZZA, 520.00, "pizza.png"));
         dishes.add(new Dish("Special House Pizza", Dish.CAT_PIZZA, 600.00, "pizza.png")
-                .needs(dough, 1).needs(mozzarella, 200).needs(sauce, 100).needs(cheddar, 50).needs(chicken, 100).special());
+                .needs(dough, 1).needs(mozzarella, 200).needs(sauce, 100).needs(chicken, 100).needs(beefCut, 100).special());
 
-        // ---- CHINESE -----------------------------------------------------------------------
+        // ================================================================================
+        // 6. CHINESE
+        // ================================================================================
         dishes.add(new Dish("Chicken Chow Mein", Dish.CAT_CHINESE, 220.00, "pasta.png"));
         dishes.add(new Dish("Beef Chow Mein", Dish.CAT_CHINESE, 260.00, "pasta.png"));
+        dishes.add(new Dish("Mixed Chow Mein", Dish.CAT_CHINESE, 300.00, "pasta.png"));
+        dishes.add(new Dish("Vegetable Chow Mein", Dish.CAT_CHINESE, 180.00, "pasta.png"));
+        dishes.add(new Dish("Chicken Pasta", Dish.CAT_CHINESE, 250.00, "pasta.png"));
+        dishes.add(new Dish("Beef Pasta", Dish.CAT_CHINESE, 280.00, "pasta.png"));
+        dishes.add(new Dish("Creamy Chicken Pasta", Dish.CAT_CHINESE, 300.00, "pasta.png"));
         dishes.add(new Dish("Chicken Chilli", Dish.CAT_CHINESE, 280.00, "pasta.png"));
+        dishes.add(new Dish("Beef Chilli", Dish.CAT_CHINESE, 320.00, "pasta.png"));
         dishes.add(new Dish("Chicken Szechuan", Dish.CAT_CHINESE, 300.00, "pasta.png"));
         dishes.add(new Dish("Chinese Mixed Platter", Dish.CAT_CHINESE, 450.00, "pasta.png"));
 
-        // ---- APPETIZERS & SNACKS -----------------------------------------------------------
+        // ================================================================================
+        // 7. APPETIZERS & SNACKS
+        // ================================================================================
         dishes.add(new Dish("French Fries", Dish.CAT_APPETIZERS, 70.00, "veg_samosa.png"));
         dishes.add(new Dish("Cheese Fries", Dish.CAT_APPETIZERS, 150.00, "veg_samosa.png"));
         dishes.add(new Dish("Chicken Nuggets", Dish.CAT_APPETIZERS, 180.00, "veg_samosa.png"));
+        dishes.add(new Dish("Chicken Wings", Dish.CAT_APPETIZERS, 120.00, "chicken_wings.png"));
+        dishes.add(new Dish("BBQ Wings", Dish.CAT_APPETIZERS, 180.00, "chicken_wings.png"));
+        dishes.add(new Dish("Chicken Popcorn", Dish.CAT_APPETIZERS, 190.00, "chicken_wings.png"));
         dishes.add(new Dish("Garlic Bread", Dish.CAT_APPETIZERS, 110.00, "veg_samosa.png"));
+        dishes.add(new Dish("Cheese Garlic Bread", Dish.CAT_APPETIZERS, 150.00, "veg_samosa.png"));
+        dishes.add(new Dish("Spring Roll", Dish.CAT_APPETIZERS, 120.00, "spring_rolls.png"));
+        dishes.add(new Dish("Chicken Spring Roll", Dish.CAT_APPETIZERS, 150.00, "spring_rolls.png"));
+        dishes.add(new Dish("Chicken Samosa", Dish.CAT_APPETIZERS, 100.00, "veg_samosa.png"));
         dishes.add(new Dish("Nachos", Dish.CAT_APPETIZERS, 250.00, "veg_samosa.png"));
+        dishes.add(new Dish("Chicken Finger", Dish.CAT_APPETIZERS, 220.00, "chicken_wings.png"));
+        dishes.add(new Dish("Special Snack Platter", Dish.CAT_APPETIZERS, 450.00, "veg_samosa.png"));
 
-        // ---- SOUP ----------------------------------------------------------------------------
+        // ================================================================================
+        // 8. SOUP
+        // ================================================================================
         dishes.add(new Dish("Chicken Corn Soup", Dish.CAT_SOUP, 180.00, "soup.png"));
         dishes.add(new Dish("Hot & Sour Soup", Dish.CAT_SOUP, 200.00, "soup.png"));
         dishes.add(new Dish("Thai Soup", Dish.CAT_SOUP, 220.00, "soup.png"));
+        dishes.add(new Dish("Seafood Soup", Dish.CAT_SOUP, 280.00, "soup.png"));
+        dishes.add(new Dish("Mushroom Soup", Dish.CAT_SOUP, 180.00, "soup.png"));
         dishes.add(new Dish("Cream of Chicken Soup", Dish.CAT_SOUP, 220.00, "soup.png"));
+        dishes.add(new Dish("Vegetable Soup", Dish.CAT_SOUP, 150.00, "soup.png"));
+        dishes.add(new Dish("Chicken Mushroom Soup", Dish.CAT_SOUP, 220.00, "soup.png"));
+        dishes.add(new Dish("Special Mixed Soup", Dish.CAT_SOUP, 300.00, "soup.png"));
+        dishes.add(new Dish("Sweet Corn Soup", Dish.CAT_SOUP, 160.00, "soup.png"));
 
-        // ---- MEXICAN & FAST FOOD -------------------------------------------------------------
+        // ================================================================================
+        // 9. MEXICAN & FAST FOOD
+        // ================================================================================
         dishes.add(new Dish("Chicken Wrap", Dish.CAT_MEXICAN, 220.00, "mexican_tacos.png"));
+        dishes.add(new Dish("Beef Wrap", Dish.CAT_MEXICAN, 260.00, "mexican_tacos.png"));
         dishes.add(new Dish("Chicken Shawarma", Dish.CAT_MEXICAN, 180.00, "mexican_tacos.png"));
+        dishes.add(new Dish("Beef Shawarma", Dish.CAT_MEXICAN, 220.00, "mexican_tacos.png"));
+        dishes.add(new Dish("Chicken Quesadilla", Dish.CAT_MEXICAN, 280.00, "mexican_tacos.png"));
         dishes.add(new Dish("Beef Quesadilla", Dish.CAT_MEXICAN, 320.00, "mexican_tacos.png"));
+        dishes.add(new Dish("Chicken Taco", Dish.CAT_MEXICAN, 200.00, "mexican_tacos.png"));
+        dishes.add(new Dish("Beef Taco", Dish.CAT_MEXICAN, 230.00, "mexican_tacos.png"));
         dishes.add(new Dish("Chicken Burrito", Dish.CAT_MEXICAN, 280.00, "mexican_tacos.png"));
+        dishes.add(new Dish("Beef Burrito", Dish.CAT_MEXICAN, 320.00, "mexican_tacos.png"));
+        dishes.add(new Dish("Chicken Sub Sandwich", Dish.CAT_MEXICAN, 250.00, "mexican_tacos.png"));
         dishes.add(new Dish("Beef Sub Sandwich", Dish.CAT_MEXICAN, 280.00, "mexican_tacos.png"));
 
-        // ---- INTERNATIONAL SPECIALS (Thai / Turkish / Arabian / Pakistani / Indian / Japanese) --
-        dishes.add(new Dish("Chicken Kabsa", Dish.CAT_INTERNATIONAL, 420.00, "beef_steak.png")
-                .needs(basmatiRice, 200).needs(chicken, 200).needs(onion, 40).special());
+        // ================================================================================
+        // 10. INTERNATIONAL SPECIALS  (Thai / Turkish / Saudi-Arabian / Pakistani / Indian /
+        //                               Japanese / Italian - all grouped under one category,
+        //                               same as the tree on the Menu tab and the Thursday
+        //                               "International Thursday" discount)
+        // ================================================================================
+        // ---- Thai
+        dishes.add(new Dish("Thai Chicken Curry", Dish.CAT_INTERNATIONAL, 350.00, "thai_curry.png"));
+        dishes.add(new Dish("Tom Yum Soup", Dish.CAT_INTERNATIONAL, 280.00, "soup.png"));
+        dishes.add(new Dish("Thai Basil Chicken", Dish.CAT_INTERNATIONAL, 320.00, "thai_curry.png"));
+        dishes.add(new Dish("Thai Green Curry", Dish.CAT_INTERNATIONAL, 350.00, "thai_curry.png")
+                .needs(chicken, 200).needs(coconutMilk, 200).needs(curryPaste, 40).special());
+        dishes.add(new Dish("Mango Sticky Rice", Dish.CAT_INTERNATIONAL, 220.00, "dessert.png"));
+        // ---- Turkish
+        dishes.add(new Dish("Chicken Shawarma Plate", Dish.CAT_INTERNATIONAL, 350.00, "mexican_tacos.png"));
+        dishes.add(new Dish("Turkish Chicken Kebab", Dish.CAT_INTERNATIONAL, 380.00, "chicken_wings.png"));
         dishes.add(new Dish("Adana Kebab", Dish.CAT_INTERNATIONAL, 420.00, "beef_steak.png")
                 .needs(beefCut, 200).needs(onion, 30).needs(blackPepper, 5).special());
-        dishes.add(new Dish("Beef Nihari", Dish.CAT_INTERNATIONAL, 400.00, "beef_steak.png")
-                .needs(beefCut, 250).needs(onion, 40).needs(ghee, 20).special());
-        dishes.add(new Dish("Chicken Ramen", Dish.CAT_INTERNATIONAL, 350.00, "sushi_platter.png")
-                .needs(ramenNoodles, 150).needs(chicken, 120).needs(soySauce, 30).needs(egg, 1).special());
-        dishes.add(new Dish("Butter Chicken", Dish.CAT_INTERNATIONAL, 350.00, "thai_curry.png")
-                .needs(chicken, 200).needs(butter, 30).needs(cream, 60).needs(tomato, 80).special());
+        dishes.add(new Dish("Lamb Kebab", Dish.CAT_INTERNATIONAL, 480.00, "beef_steak.png"));
+        // ---- Saudi / Arabian
+        dishes.add(new Dish("Chicken Kabsa", Dish.CAT_INTERNATIONAL, 420.00, "beef_steak.png")
+                .needs(basmatiRice, 200).needs(chicken, 200).needs(onion, 40).special());
+        dishes.add(new Dish("Mutton Kabsa", Dish.CAT_INTERNATIONAL, 520.00, "beef_steak.png"));
+        dishes.add(new Dish("Chicken Mandi", Dish.CAT_INTERNATIONAL, 450.00, "thai_curry.png"));
+        dishes.add(new Dish("Mutton Mandi", Dish.CAT_INTERNATIONAL, 550.00, "beef_steak.png")
+                .needs(muttonMeat, 250).needs(basmatiRice, 200).needs(yogurt, 50));
+        dishes.add(new Dish("Beef Shawarma Plate", Dish.CAT_INTERNATIONAL, 420.00, "mexican_tacos.png"));
+        dishes.add(new Dish("Hummus", Dish.CAT_INTERNATIONAL, 180.00, "salad.png"));
+        dishes.add(new Dish("Falafel Plate", Dish.CAT_INTERNATIONAL, 220.00, "salad.png"));
+        dishes.add(new Dish("Arabic Grilled Chicken", Dish.CAT_INTERNATIONAL, 420.00, "chicken_wings.png"));
         dishes.add(new Dish("Kunafa", Dish.CAT_INTERNATIONAL, 250.00, "gulab_jamun.png")
                 .needs(kunafaDough, 120).needs(cheese, 60).needs(sugarSyrup, 40).needs(ghee, 20).special());
+        // ---- Pakistani
+        dishes.add(new Dish("Beef Nihari", Dish.CAT_INTERNATIONAL, 400.00, "beef_steak.png")
+                .needs(beefCut, 250).needs(onion, 40).needs(ghee, 20).special());
+        dishes.add(new Dish("Chicken Handi", Dish.CAT_INTERNATIONAL, 380.00, "thai_curry.png"));
+        dishes.add(new Dish("Chicken Malai Tikka", Dish.CAT_INTERNATIONAL, 350.00, "chicken_wings.png"));
+        dishes.add(new Dish("Seekh Kebab", Dish.CAT_INTERNATIONAL, 350.00, "beef_steak.png"));
+        dishes.add(new Dish("Reshmi Kebab", Dish.CAT_INTERNATIONAL, 350.00, "chicken_wings.png"));
+        dishes.add(new Dish("Haleem", Dish.CAT_INTERNATIONAL, 280.00, "thai_curry.png"));
+        dishes.add(new Dish("Peshawari Naan", Dish.CAT_INTERNATIONAL, 180.00, "veg_samosa.png"));
+        dishes.add(new Dish("Pakistani Kheer", Dish.CAT_INTERNATIONAL, 150.00, "dessert.png"));
+        // ---- Indian
+        dishes.add(new Dish("Butter Chicken", Dish.CAT_INTERNATIONAL, 350.00, "thai_curry.png")
+                .needs(chicken, 200).needs(butter, 30).needs(cream, 60).needs(tomato, 80).special());
+        dishes.add(new Dish("Chicken Tikka Masala", Dish.CAT_INTERNATIONAL, 360.00, "thai_curry.png"));
+        // NOTE: the menu lists "Chicken Tandoori" twice (Chicken Specials Tt220 and here Tt320).
+        // Renamed to "Chicken Tandoori (Indian)" so both stay distinct and orderable by name.
+        dishes.add(new Dish("Chicken Tandoori (Indian)", Dish.CAT_INTERNATIONAL, 320.00, "chicken_wings.png"));
+        dishes.add(new Dish("Palak Paneer", Dish.CAT_INTERNATIONAL, 300.00, "salad.png"));
+        dishes.add(new Dish("Dal Makhani", Dish.CAT_INTERNATIONAL, 220.00, "soup.png"));
+        dishes.add(new Dish("Chole Bhature", Dish.CAT_INTERNATIONAL, 250.00, "veg_samosa.png"));
+        // ---- Japanese
+        dishes.add(new Dish("Chicken Ramen", Dish.CAT_INTERNATIONAL, 350.00, "sushi_platter.png")
+                .needs(ramenNoodles, 150).needs(chicken, 120).needs(soySauce, 30).needs(egg, 1).special());
+        dishes.add(new Dish("Beef Ramen", Dish.CAT_INTERNATIONAL, 400.00, "sushi_platter.png"));
+        dishes.add(new Dish("Chicken Teriyaki", Dish.CAT_INTERNATIONAL, 380.00, "chicken_wings.png"));
+        dishes.add(new Dish("Beef Teriyaki", Dish.CAT_INTERNATIONAL, 420.00, "beef_steak.png"));
+        dishes.add(new Dish("Vegetable Sushi", Dish.CAT_INTERNATIONAL, 300.00, "sushi_platter.png"));
+        // ---- Italian
+        dishes.add(new Dish("Chicken Alfredo Pasta", Dish.CAT_INTERNATIONAL, 350.00, "pasta.png")
+                .needs(spaghetti, 200).needs(chicken, 150).needs(cream, 100));
+        dishes.add(new Dish("Tiramisu", Dish.CAT_INTERNATIONAL, 250.00, "dessert.png"));
+        dishes.add(new Dish("Lasagna", Dish.CAT_INTERNATIONAL, 420.00, "pasta.png")
+                .needs(lasagnaSheets, 4).needs(beefCut, 150).needs(cheese, 3).needs(sauce, 100).special());
 
-        // ---- SALAD ------------------------------------------------------------------------
+        // ================================================================================
+        // 11. SALAD
+        // ================================================================================
+        dishes.add(new Dish("Green Salad", Dish.CAT_SALAD, 120.00, "salad.png"));
         dishes.add(new Dish("Chicken Salad", Dish.CAT_SALAD, 220.00, "salad.png"));
         dishes.add(new Dish("Russian Salad", Dish.CAT_SALAD, 180.00, "salad.png"));
+        dishes.add(new Dish("Fruit Salad", Dish.CAT_SALAD, 180.00, "salad.png"));
         dishes.add(new Dish("Corn Salad", Dish.CAT_SALAD, 150.00, "salad.png"));
         dishes.add(new Dish("Special House Salad", Dish.CAT_SALAD, 250.00, "salad.png"));
 
-        // ---- COLD DRINKS --------------------------------------------------------------------
+        // ================================================================================
+        // 12. DESSERTS
+        // ================================================================================
+        dishes.add(new Dish("Chocolate Cake", Dish.CAT_DESSERTS, 160.00, "brownie.png"));
+        dishes.add(new Dish("Black Forest Cake", Dish.CAT_DESSERTS, 180.00, "brownie.png"));
+        dishes.add(new Dish("Red Velvet Cake", Dish.CAT_DESSERTS, 180.00, "brownie.png"));
+        dishes.add(new Dish("Chocolate Brownie", Dish.CAT_DESSERTS, 180.00, "brownie.png"));
+        dishes.add(new Dish("Chocolate Lava Cake", Dish.CAT_DESSERTS, 220.00, "brownie.png"));
+        dishes.add(new Dish("Cheesecake", Dish.CAT_DESSERTS, 250.00, "dessert.png"));
+        dishes.add(new Dish("Donut", Dish.CAT_DESSERTS, 100.00, "dessert.png"));
+        dishes.add(new Dish("Chocolate Donut", Dish.CAT_DESSERTS, 130.00, "dessert.png"));
+        dishes.add(new Dish("Waffle", Dish.CAT_DESSERTS, 180.00, "dessert.png"));
+        dishes.add(new Dish("Chocolate Waffle", Dish.CAT_DESSERTS, 220.00, "dessert.png"));
+        dishes.add(new Dish("Ice Cream", Dish.CAT_DESSERTS, 120.00, "sundae.png"));
+        dishes.add(new Dish("Chocolate Sundae", Dish.CAT_DESSERTS, 220.00, "sundae.png"));
+        dishes.add(new Dish("Strawberry Sundae", Dish.CAT_DESSERTS, 200.00, "sundae.png"));
+        dishes.add(new Dish("Falooda", Dish.CAT_DESSERTS, 180.00, "sundae.png"));
+        dishes.add(new Dish("Fruit Custard", Dish.CAT_DESSERTS, 150.00, "dessert.png"));
+        dishes.add(new Dish("Caramel Pudding", Dish.CAT_DESSERTS, 150.00, "dessert.png"));
+
+        // ================================================================================
+        // 13. COLD DRINKS
+        // ================================================================================
+        // NOTE: the menu's plain "Cold Drinks - Tt30" line (a generic soft drink/soda) is
+        // named "Soft Drink" here so it doesn't share its name with the category itself.
+        dishes.add(new Dish("Soft Drink", Dish.CAT_COLD_DRINKS, 30.00, "juice.png"));
         dishes.add(new Dish("Mineral Water", Dish.CAT_COLD_DRINKS, 20.00, "juice.png"));
         dishes.add(new Dish("Fresh Lemonade", Dish.CAT_COLD_DRINKS, 60.00, "juice.png"));
+        dishes.add(new Dish("Mint Lemonade", Dish.CAT_COLD_DRINKS, 70.00, "juice.png"));
+        dishes.add(new Dish("Orange Juice", Dish.CAT_COLD_DRINKS, 60.00, "juice.png"));
         dishes.add(new Dish("Mango Juice", Dish.CAT_COLD_DRINKS, 80.00, "juice.png"));
         dishes.add(new Dish("Watermelon Juice", Dish.CAT_COLD_DRINKS, 80.00, "juice.png"));
+        dishes.add(new Dish("Pineapple Juice", Dish.CAT_COLD_DRINKS, 90.00, "juice.png"));
+        dishes.add(new Dish("Apple Juice", Dish.CAT_COLD_DRINKS, 80.00, "juice.png"));
 
-        // ---- MILKSHAKES & SPECIAL DRINKS -----------------------------------------------------
+        // ================================================================================
+        // 14. MILKSHAKES & SPECIAL DRINKS
+        // ================================================================================
         dishes.add(new Dish("Vanilla Milkshake", Dish.CAT_MILKSHAKES, 180.00, "mango_shake.png"));
         dishes.add(new Dish("Chocolate Milkshake", Dish.CAT_MILKSHAKES, 200.00, "mango_shake.png"));
+        dishes.add(new Dish("Strawberry Milkshake", Dish.CAT_MILKSHAKES, 200.00, "mango_shake.png"));
+        dishes.add(new Dish("Mango Milkshake", Dish.CAT_MILKSHAKES, 200.00, "mango_shake.png"));
         dishes.add(new Dish("Oreo Shake", Dish.CAT_MILKSHAKES, 220.00, "mango_shake.png"));
+        dishes.add(new Dish("KitKat Shake", Dish.CAT_MILKSHAKES, 230.00, "mango_shake.png"));
+        dishes.add(new Dish("Chocolate Brownie Shake", Dish.CAT_MILKSHAKES, 250.00, "mango_shake.png"));
         dishes.add(new Dish("Cold Coffee", Dish.CAT_MILKSHAKES, 160.00, "mango_shake.png"));
+        dishes.add(new Dish("Iced Latte", Dish.CAT_MILKSHAKES, 180.00, "mango_shake.png"));
+        dishes.add(new Dish("Iced Mocha", Dish.CAT_MILKSHAKES, 200.00, "mango_shake.png"));
 
-        // ---- HOT BEVERAGES ---------------------------------------------------------------------
+        // ================================================================================
+        // 15. HOT BEVERAGES
+        // ================================================================================
         dishes.add(new Dish("Tea", Dish.CAT_HOT_BEVERAGES, 30.00, "juice.png"));
+        dishes.add(new Dish("Milk Tea", Dish.CAT_HOT_BEVERAGES, 50.00, "juice.png"));
         dishes.add(new Dish("Masala Tea", Dish.CAT_HOT_BEVERAGES, 40.00, "juice.png"));
+        dishes.add(new Dish("Lemon Tea", Dish.CAT_HOT_BEVERAGES, 40.00, "juice.png"));
+        dishes.add(new Dish("Green Tea", Dish.CAT_HOT_BEVERAGES, 40.00, "juice.png"));
+        dishes.add(new Dish("Black Coffee", Dish.CAT_HOT_BEVERAGES, 60.00, "juice.png"));
         dishes.add(new Dish("Espresso", Dish.CAT_HOT_BEVERAGES, 100.00, "juice.png"));
         dishes.add(new Dish("Cappuccino", Dish.CAT_HOT_BEVERAGES, 120.00, "juice.png"));
+        dishes.add(new Dish("Cafe Latte", Dish.CAT_HOT_BEVERAGES, 160.00, "juice.png"));
+        dishes.add(new Dish("Americano", Dish.CAT_HOT_BEVERAGES, 150.00, "juice.png"));
+        dishes.add(new Dish("Mocha", Dish.CAT_HOT_BEVERAGES, 160.00, "juice.png"));
 
         // Staff is NOT seeded here - see loadStaffFromDatabase()/seedStaffIfEmpty():
         // the "staff" table in SQLite is the single source of truth for staff members,
