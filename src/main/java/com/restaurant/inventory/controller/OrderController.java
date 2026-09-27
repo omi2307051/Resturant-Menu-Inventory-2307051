@@ -40,7 +40,7 @@ import java.util.ResourceBundle;
  * then "Place Order (Checkout)" deducts everything from stock in one transaction and prints
  * an itemised receipt in Taka, with today's category discount already applied.
  *
- * TOPICS HERE: ListView, ImageView + "Change Image", Spinner (1-10),
+ * TOPICS HERE: ListView, ImageView + "Reset Image", Spinner (1-10),
  *              event handling from code (Button.setOnAction, TextField + Enter key),
  *              TableView (recipe + cart), Alerts, Initializable, colour-coded categories.
  */
@@ -329,17 +329,20 @@ public class OrderController implements Initializable {
 
     // ================================================================= IMAGEVIEW
 
-    /** "Change Image" button: load the next picture from the resources/images directory. */
+    /**
+     * "Reset Image" button: restores this dish's own correct picture.
+     * (Each dish now has its own uniquely generated, labelled image - there is nothing to
+     * "change" it to that would still be correct, so this button undoes any accidental
+     * mismatch rather than cycling through every other dish's photo.)
+     */
     @FXML
     private void onChangeImage() {
         Dish dish = dishList.getSelectionModel().getSelectedItem();
         if (dish == null) {
-            AlertUtil.warning("No dish selected", "Select a dish first, then change its image.");
+            AlertUtil.warning("No dish selected", "Select a dish first.");
             return;
         }
-        List<String> files = Dish.IMAGE_FILES;
-        int next = (files.indexOf(dish.getImageName()) + 1) % files.size();
-        dish.setImageName(files.get(next));
+        dish.setImageName(dish.getDefaultImageName());
         dishImage.setImage(loadResourceImage(dish.getImageName()));
     }
 

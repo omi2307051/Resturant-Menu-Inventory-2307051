@@ -14,14 +14,6 @@ import java.util.List;
  */
 public class Dish extends MenuItem implements Reportable {
 
-    /** Images stored in src/main/resources/images (used by the "Change Image" button). */
-    public static final List<String> IMAGE_FILES = List.of(
-            "burger.png", "pizza.png", "pasta.png", "salad.png", "soup.png",
-            "juice.png", "mango_shake.png", "dessert.png", "spring_rolls.png",
-            "chicken_wings.png", "veg_samosa.png", "sushi_platter.png",
-            "beef_steak.png", "thai_curry.png", "mexican_tacos.png",
-            "brownie.png", "sundae.png", "gulab_jamun.png");
-
     /** Category names used everywhere (menu tree, colour theme, daily discount rules). */
     public static final String CAT_DESSERTS = "Desserts";
 
@@ -48,12 +40,15 @@ public class Dish extends MenuItem implements Reportable {
             "cat-international", "cat-salad", "cat-colddrinks", "cat-milkshakes", "cat-hotbeverages");
 
     private String imageName;
+    /** The picture this dish was created with (its correct image) - used to undo an accidental mismatch. */
+    private final String defaultImageName;
     private final List<RecipeLine> recipe = new ArrayList<>();
     private boolean chefSpecial = false;
 
     public Dish(String name, String category, double price, String imageName) {
         super(name, category, price);
         this.imageName = imageName;
+        this.defaultImageName = imageName;
     }
 
     /** Fluent helper: dish.needs(patty, 1).needs(bun, 1) ... */
@@ -70,6 +65,9 @@ public class Dish extends MenuItem implements Reportable {
 
     public String getImageName() { return imageName; }
     public void setImageName(String imageName) { this.imageName = imageName; }
+
+    /** The correct, originally-assigned picture for this dish - never changes after construction. */
+    public String getDefaultImageName() { return defaultImageName; }
     public List<RecipeLine> getRecipe() { return Collections.unmodifiableList(recipe); }
     public boolean isChefSpecial() { return chefSpecial; }
 
