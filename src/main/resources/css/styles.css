@@ -187,6 +187,20 @@
 .dish-frame.cat-foreign   { -fx-background-color: #f3e5f5; -fx-border-color: #8e24aa; }
 .dish-frame.cat-drinks    { -fx-background-color: #e0f7fa; -fx-border-color: #00acc1; }
 .dish-frame.cat-desserts  { -fx-background-color: #fce4ec; -fx-border-color: #ec407a; }
+.dish-frame.cat-biryani      { -fx-background-color: #fff3cd; -fx-border-color: #e8a33d; }
+.dish-frame.cat-chicken      { -fx-background-color: #fde0d9; -fx-border-color: #e8590c; }
+.dish-frame.cat-beefmutton   { -fx-background-color: #e7dcd3; -fx-border-color: #8b5e34; }
+.dish-frame.cat-burgers      { -fx-background-color: #fadbd8; -fx-border-color: #c0392b; }
+.dish-frame.cat-pizza        { -fx-background-color: #fdebd0; -fx-border-color: #e67e22; }
+.dish-frame.cat-chinese      { -fx-background-color: #fcf3cf; -fx-border-color: #d4ac0d; }
+.dish-frame.cat-appetizers   { -fx-background-color: #e9f7ef; -fx-border-color: #27ae60; }
+.dish-frame.cat-soup         { -fx-background-color: #fef5e7; -fx-border-color: #dc7633; }
+.dish-frame.cat-mexican      { -fx-background-color: #e8f8f5; -fx-border-color: #16a085; }
+.dish-frame.cat-international{ -fx-background-color: #eaf2f8; -fx-border-color: #2e86c1; }
+.dish-frame.cat-salad        { -fx-background-color: #e8f6f3; -fx-border-color: #48c9b0; }
+.dish-frame.cat-colddrinks   { -fx-background-color: #e0f7fa; -fx-border-color: #00bcd4; }
+.dish-frame.cat-milkshakes   { -fx-background-color: #f4ecf7; -fx-border-color: #af7ac5; }
+.dish-frame.cat-hotbeverages { -fx-background-color: #efe6dd; -fx-border-color: #795548; }
 
 /* ------------------------------------------------- category colours (list rows) */
 .list-cell.cat-starters {
@@ -224,6 +238,76 @@
     -fx-text-fill: #880e4f;
     -fx-font-weight: bold;
 }
+.list-cell.cat-biryani {
+    -fx-background-color: linear-gradient(to right, #fff8e1, #ffe082);
+    -fx-border-color: transparent transparent transparent #e8a33d;
+    -fx-border-width: 0 0 0 6; -fx-text-fill: #7a4f01; -fx-font-weight: bold;
+}
+.list-cell.cat-chicken {
+    -fx-background-color: linear-gradient(to right, #fde0d9, #ffab91);
+    -fx-border-color: transparent transparent transparent #e8590c;
+    -fx-border-width: 0 0 0 6; -fx-text-fill: #8a2e00; -fx-font-weight: bold;
+}
+.list-cell.cat-beefmutton {
+    -fx-background-color: linear-gradient(to right, #efebe9, #d7ccc8);
+    -fx-border-color: transparent transparent transparent #8b5e34;
+    -fx-border-width: 0 0 0 6; -fx-text-fill: #4a3018; -fx-font-weight: bold;
+}
+.list-cell.cat-burgers {
+    -fx-background-color: linear-gradient(to right, #fadbd8, #f5b7b1);
+    -fx-border-color: transparent transparent transparent #c0392b;
+    -fx-border-width: 0 0 0 6; -fx-text-fill: #78281f; -fx-font-weight: bold;
+}
+.list-cell.cat-pizza {
+    -fx-background-color: linear-gradient(to right, #fdebd0, #fad7a0);
+    -fx-border-color: transparent transparent transparent #e67e22;
+    -fx-border-width: 0 0 0 6; -fx-text-fill: #7e3f00; -fx-font-weight: bold;
+}
+.list-cell.cat-chinese {
+    -fx-background-color: linear-gradient(to right, #fcf3cf, #f9e79f);
+    -fx-border-color: transparent transparent transparent #d4ac0d;
+    -fx-border-width: 0 0 0 6; -fx-text-fill: #7d6608; -fx-font-weight: bold;
+}
+.list-cell.cat-appetizers {
+    -fx-background-color: linear-gradient(to right, #e9f7ef, #abebc6);
+    -fx-border-color: transparent transparent transparent #27ae60;
+    -fx-border-width: 0 0 0 6; -fx-text-fill: #145a32; -fx-font-weight: bold;
+}
+.list-cell.cat-soup {
+    -fx-background-color: linear-gradient(to right, #fef5e7, #fad7a0);
+    -fx-border-color: transparent transparent transparent #dc7633;
+    -fx-border-width: 0 0 0 6; -fx-text-fill: #6e3005; -fx-font-weight: bold;
+}
+.list-cell.cat-mexican {
+    -fx-background-color: linear-gradient(to right, #e8f8f5, #a3e4d7);
+    -fx-border-color: transparent transparent transparent #16a085;
+    -fx-border-width: 0 0 0 6; -fx-text-fill: #0b5345; -fx-font-weight: bold;
+}
+.list-cell.cat-international {
+    -fx-background-color: linear-gradient(to right, #eaf2f8, #aed6f1);
+    -fx-border-color: transparent transparent transparent #2e86c1;
+    -fx-border-width: 0 0 0 6; -fx-text-fill: #1b4f72; -fx-font-weight: bold;
+}
+.list-cell.cat-salad {
+    -fx-background-color: linear-gradient(to right, #e8f6f3, #a2d9ce);
+    -fx-border-color: transparent transparent transparent #48c9b0;
+    -fx-border-width: 0 0 0 6; -fx-text-fill: #0e6251; -fx-font-weight: bold;
+}
+.list-cell.cat-colddrinks {
+    -fx-background-color: linear-gradient(to right, #e0f7fa, #80deea);
+    -fx-border-color: transparent transparent transparent #00bcd4;
+    -fx-border-width: 0 0 0 6; -fx-text-fill: #006064; -fx-font-weight: bold;
+}
+.list-cell.cat-milkshakes {
+    -fx-background-color: linear-gradient(to right, #f4ecf7, #d7bde2);
+    -fx-border-color: transparent transparent transparent #af7ac5;
+    -fx-border-width: 0 0 0 6; -fx-text-fill: #5b2c6f; -fx-font-weight: bold;
+}
+.list-cell.cat-hotbeverages {
+    -fx-background-color: linear-gradient(to right, #efe6dd, #d7ccc8);
+    -fx-border-color: transparent transparent transparent #795548;
+    -fx-border-width: 0 0 0 6; -fx-text-fill: #3e2723; -fx-font-weight: bold;
+}
 .list-cell.out-of-stock-cell {
     -fx-background-color: #cfd8dc;
     -fx-text-fill: #b71c1c;
@@ -239,6 +323,20 @@
 .tree-cell.cat-foreign   { -fx-text-fill: #6a1b9a; -fx-font-weight: bold; }
 .tree-cell.cat-drinks    { -fx-text-fill: #00838f; -fx-font-weight: bold; }
 .tree-cell.cat-desserts  { -fx-text-fill: #ad1457; -fx-font-weight: bold; }
+.tree-cell.cat-biryani       { -fx-text-fill: #7a4f01; -fx-font-weight: bold; }
+.tree-cell.cat-chicken       { -fx-text-fill: #8a2e00; -fx-font-weight: bold; }
+.tree-cell.cat-beefmutton    { -fx-text-fill: #4a3018; -fx-font-weight: bold; }
+.tree-cell.cat-burgers       { -fx-text-fill: #78281f; -fx-font-weight: bold; }
+.tree-cell.cat-pizza         { -fx-text-fill: #7e3f00; -fx-font-weight: bold; }
+.tree-cell.cat-chinese       { -fx-text-fill: #7d6608; -fx-font-weight: bold; }
+.tree-cell.cat-appetizers    { -fx-text-fill: #145a32; -fx-font-weight: bold; }
+.tree-cell.cat-soup          { -fx-text-fill: #6e3005; -fx-font-weight: bold; }
+.tree-cell.cat-mexican       { -fx-text-fill: #0b5345; -fx-font-weight: bold; }
+.tree-cell.cat-international { -fx-text-fill: #1b4f72; -fx-font-weight: bold; }
+.tree-cell.cat-salad         { -fx-text-fill: #0e6251; -fx-font-weight: bold; }
+.tree-cell.cat-colddrinks    { -fx-text-fill: #006064; -fx-font-weight: bold; }
+.tree-cell.cat-milkshakes    { -fx-text-fill: #5b2c6f; -fx-font-weight: bold; }
+.tree-cell.cat-hotbeverages  { -fx-text-fill: #3e2723; -fx-font-weight: bold; }
 
 /* ----------------------------------------------------------- table view */
 .table-view {

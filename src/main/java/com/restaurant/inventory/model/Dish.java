@@ -29,6 +29,22 @@ public class Dish extends MenuItem implements Reportable {
     public static final String CAT_DRINKS = "Drinks";
     public static final String CAT_DESSERTS = "Desserts";
 
+    // ---- categories added for the expanded Bangladeshi restaurant menu ----------------
+    public static final String CAT_BIRYANI = "Biryani & Rice";
+    public static final String CAT_CHICKEN = "Chicken Specials";
+    public static final String CAT_BEEF_MUTTON = "Beef & Mutton";
+    public static final String CAT_BURGERS = "Burgers";
+    public static final String CAT_PIZZA = "Pizza";
+    public static final String CAT_CHINESE = "Chinese";
+    public static final String CAT_APPETIZERS = "Appetizers & Snacks";
+    public static final String CAT_SOUP = "Soup";
+    public static final String CAT_MEXICAN = "Mexican & Fast Food";
+    public static final String CAT_INTERNATIONAL = "International Specials";
+    public static final String CAT_SALAD = "Salad";
+    public static final String CAT_COLD_DRINKS = "Cold Drinks";
+    public static final String CAT_MILKSHAKES = "Milkshakes & Special Drinks";
+    public static final String CAT_HOT_BEVERAGES = "Hot Beverages";
+
     private String imageName;
     private final List<RecipeLine> recipe = new ArrayList<>();
     private boolean chefSpecial = false;
@@ -90,6 +106,20 @@ public class Dish extends MenuItem implements Reportable {
             case CAT_FOREIGN -> "cat-foreign";
             case CAT_DRINKS -> "cat-drinks";
             case CAT_DESSERTS -> "cat-desserts";
+            case CAT_BIRYANI -> "cat-biryani";
+            case CAT_CHICKEN -> "cat-chicken";
+            case CAT_BEEF_MUTTON -> "cat-beefmutton";
+            case CAT_BURGERS -> "cat-burgers";
+            case CAT_PIZZA -> "cat-pizza";
+            case CAT_CHINESE -> "cat-chinese";
+            case CAT_APPETIZERS -> "cat-appetizers";
+            case CAT_SOUP -> "cat-soup";
+            case CAT_MEXICAN -> "cat-mexican";
+            case CAT_INTERNATIONAL -> "cat-international";
+            case CAT_SALAD -> "cat-salad";
+            case CAT_COLD_DRINKS -> "cat-colddrinks";
+            case CAT_MILKSHAKES -> "cat-milkshakes";
+            case CAT_HOT_BEVERAGES -> "cat-hotbeverages";
             default -> "cat-main";
         };
     }
