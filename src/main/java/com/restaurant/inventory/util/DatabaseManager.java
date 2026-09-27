@@ -76,6 +76,15 @@ public final class DatabaseManager {
         } catch (SQLException ignored) {
             // column already exists - nothing to do
         }
+
+        // BACKFILL: any row written before the "role" column existed now has role = NULL
+        // (ADD COLUMN does not fill in old rows). Give those legacy rows a sane default
+        // instead of showing a blank/"null" Role everywhere in the UI.
+        try (Connection conn = connect(); Statement st = conn.createStatement()) {
+            st.execute("UPDATE staff SET role = 'Server' WHERE role IS NULL OR role = ''");
+        } catch (SQLException e) {
+            System.err.println("[DatabaseManager] Could not backfill legacy 'role' values: " + e.getMessage());
+        }
     }
 
     // ======================================================================= INGREDIENTS (CRUD)
