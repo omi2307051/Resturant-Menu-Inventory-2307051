@@ -70,6 +70,10 @@
                                     <Insets top="8" right="8" bottom="8" left="8"/>
                                 </padding>
                                 <HBox spacing="8" alignment="CENTER_LEFT">
+                                    <Label text="Customer name:" styleClass="field-label"/>
+                                    <TextField fx:id="customerNameField" promptText="e.g. Jakaria" prefWidth="240"/>
+                                </HBox>
+                                <HBox spacing="8" alignment="CENTER_LEFT">
                                     <Label text="Order by name:" styleClass="field-label"/>
                                     <TextField fx:id="addToCartField" promptText="e.g. Sushi Platter, mango, tacos..." prefWidth="240"/>
                                     <Button text="Add to Cart" styleClass="primary-button" onAction="#onAddToCart"/>
@@ -100,9 +104,10 @@
     </center>
 
     <right>
-        <VBox spacing="6" prefWidth="250">
-            <Label text="Order history" styleClass="section-title"/>
+        <VBox spacing="6" prefWidth="290">
+            <Label text="Order history (double-click for the bill)" styleClass="section-title" wrapText="true"/>
             <ListView fx:id="historyList" VBox.vgrow="ALWAYS"/>
+            <Button text="View selected bill" maxWidth="Infinity" onAction="#onViewBill"/>
         </VBox>
     </right>
 

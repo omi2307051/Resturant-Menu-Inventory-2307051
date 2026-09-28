@@ -24,10 +24,10 @@ and run `Plugins > javafx > javafx:run`.
 ```
 src/main/java/com/restaurant/inventory
   Main.java                      entry point
-  model/    Person, Ingredient, Dish, RecipeLine, MenuItem (abstract), Reportable (interface)
+  model/    Person, Ingredient, Dish, RecipeLine, OrderRecord, MenuItem (abstract), Reportable (interface)
   service/  InventoryService     all data + the "order -> deduct stock" logic + thread pool
   controller/  Main / Order / Inventory / Menu / Staff / Tools controllers
-  util/     AlertUtil, DatabaseManager (SQLite), NetworkUtil (HTTP + JSON)
+  util/     AlertUtil, DatabaseManager (SQLite), NetworkUtil (HTTP + JSON), BillFormatter + BillDialog (bill paper)
 src/main/resources
   fxml/     MainView + one FXML per tab
   css/      styles.css
@@ -45,7 +45,7 @@ restaurant_inventory.db          created automatically on first run (SQLite data
 | **JavaFX UI design** | see the table below - BorderPane/VBox/HBox/StackPane/FlowPane + most standard controls |
 | **Layout responsiveness** | `MainController.setupResponsiveLayout()` - font size and label width react to `Scene.widthProperty()`/`heightProperty()` |
 | **Concurrency** | `InventoryService.getExecutor()` (a `ExecutorService` thread pool) used by: "Check supplier price" (Inventory tab), "Fetch live rate" (Kitchen Tools), and File > Open's background CSV parsing - all via `javafx.concurrent.Task` |
-| **Database integration (SQLite)** | `util/DatabaseManager.java` - tables `ingredients`, `staff`, `orders` in `restaurant_inventory.db` |
+| **Database integration (SQLite)** | `util/DatabaseManager.java` - tables `ingredients`, `staff`, `orders` (customer, payment method, items, total, bill text) in `restaurant_inventory.db` |
 | **CRUD** | Ingredients: Create/Read (seed + File>Open), Update (Restock), Delete (Delete ingredient). Staff: Create (Submit), Read (table), Update (Promote skill), Delete (Remove selected) - all backed by SQLite |
 | **Networking & data parsing** | `util/NetworkUtil.java` - HTTP GET with `java.net.http.HttpClient`, JSON parsed with `org.json` ("Fetch live rate" button, Kitchen Tools tab) |
 
@@ -76,9 +76,21 @@ restaurant_inventory.db          created automatically on first run (SQLite data
 | PasswordField + show as plain text | **Staff** tab - Show / Hide button |
 | FileChooser "Browse" -> ImageView | **Staff** tab (photo); also File > Open loads a CSV |
 
+## Customer, payment & bill (Orders tab)
+
+Checkout flow: **1)** type the **Customer name** (required) -> **2)** add dishes to the cart -> **3)** click
+**Place Order (Checkout)** -> **4)** pick a **payment method** (Cash / bKash / Nagad / Rocket / Card) ->
+**5)** the order is placed (stock deducted) and a **bill paper** opens, which you can **Print** or **Save as .txt**.
+
+Every order is added to the **Order history** (customer, items, payment method, total) and saved in the
+`orders` table together with its bill, so double-clicking an order (or *View selected bill*) re-opens the bill,
+and today's orders/sales are reloaded after a restart. Example: `customer: Jakaria, order: Kacchi Biryani, paid via: bKash`.
+If the customer name is empty, the cart is empty, stock is short, or the payment dialog is cancelled, nothing is
+deducted or saved. (`File > New` only clears the on-screen history; the saved orders stay in the database.)
+
 ## Try this demo flow
 
-1. **Orders** > select *Special House Burger*, quantity 3 > **Place Order**. Beef Patty hits 0, a warning
+1. **Orders** > type a customer name, add *Special House Burger* x3 to the cart > **Place Order (Checkout)** > choose a payment method. Beef Patty hits 0, a warning
    appears, the dish turns red and the status bar lists what is out of stock.
 2. Set quantity 1 and order again - an error alert says which ingredient is short.
 3. Order *Beef Steak* x6: Beef Steak Cut drops low/out, so other dishes that share it

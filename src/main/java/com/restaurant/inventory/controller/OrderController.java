@@ -3,16 +3,24 @@ package com.restaurant.inventory.controller;
 import com.restaurant.inventory.model.CartLine;
 import com.restaurant.inventory.model.Dish;
 import com.restaurant.inventory.model.Ingredient;
+import com.restaurant.inventory.model.OrderRecord;
 import com.restaurant.inventory.model.RecipeLine;
 import com.restaurant.inventory.service.InventoryService;
 import com.restaurant.inventory.util.AlertUtil;
+import com.restaurant.inventory.util.BillDialog;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.geometry.Insets;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.RadioButton;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
@@ -27,6 +35,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 
 import java.net.URL;
 import java.util.List;
@@ -37,8 +46,10 @@ import java.util.ResourceBundle;
  *
  * A customer can now order SEVERAL different dishes in one visit: type a dish name (or select
  * it from the menu), choose a quantity, click "Add to Cart" - repeat for every dish wanted -
- * then "Place Order (Checkout)" deducts everything from stock in one transaction and prints
- * an itemised receipt in Taka, with today's category discount already applied.
+ * then enter the customer's name and click "Place Order (Checkout)": the customer picks a payment
+ * method (Cash / bKash / Nagad / Rocket / Card), everything is deducted from stock in one transaction,
+ * a bill paper (itemised, in Taka, with today's discount) is shown for printing/saving, and the order
+ * is added to the Order history and the database.
  *
  * TOPICS HERE: ListView, ImageView + "Reset Image", Spinner (1-10),
  *              event handling from code (Button.setOnAction, TextField + Enter key),
@@ -51,7 +62,7 @@ public class OrderController implements Initializable {
     @FXML private HBox actionBar;             // the "Add to Cart" Button is created in CODE and added here
     @FXML private Label todaysDiscountLabel;
     @FXML private ListView<Dish> dishList;
-    @FXML private ListView<String> historyList;
+    @FXML private ListView<OrderRecord> historyList;
     @FXML private StackPane dishImageFrame;
     @FXML private ImageView dishImage;
     @FXML private Label selectedDishLabel;
@@ -66,6 +77,7 @@ public class OrderController implements Initializable {
     @FXML private TableColumn<RecipeLine, String> recStatusCol;
 
     // ---- cart (multi-item order by name)
+    @FXML private TextField customerNameField;
     @FXML private TextField addToCartField;
     @FXML private TableView<CartLine> cartTable;
     @FXML private TableColumn<CartLine, String> cartDishCol;
@@ -92,6 +104,18 @@ public class OrderController implements Initializable {
                 .addListener((observable, oldDish, newDish) -> showDish(newDish));
 
         historyList.setItems(service.getOrderHistory());
+        historyList.setCellFactory(listView -> new ListCell<>() {
+            @Override
+            protected void updateItem(OrderRecord order, boolean empty) {
+                super.updateItem(order, empty);
+                setText(empty || order == null ? null : order.toString());
+                setWrapText(true);
+                setPrefWidth(0);   // wrap inside the list instead of growing a horizontal scrollbar
+            }
+        });
+        historyList.setOnMouseClicked(event -> {
+            if (event.getClickCount() == 2) onViewBill();
+        });
 
         setupRecipeTable();
         setupCartTable();
@@ -268,28 +292,97 @@ public class OrderController implements Initializable {
         refreshCartTotal();
     }
 
-    /** Checks out the whole cart in one transaction and shows an itemised receipt. */
+    /**
+     * Checkout: (1) the customer's name is required, (2) stock is checked, (3) the payment method
+     * is chosen, (4) the order is placed (stock deducted, saved to the order history + database)
+     * and (5) the bill paper is shown, ready to print or save.
+     */
     @FXML
     private void onPlaceAllOrders() {
-        InventoryService.OrderResult result = service.placeCartOrder(List.copyOf(cart));
+        String customer = customerNameField.getText() == null ? "" : customerNameField.getText().trim();
+        if (customer.isEmpty()) {
+            AlertUtil.warning("Customer name needed", "Please enter the customer's name before placing the order.");
+            customerNameField.requestFocus();
+            return;
+        }
 
+        String problem = service.checkCartProblems(cart);
+        if (problem != null) {
+            showOrderMessage(problem, false);
+            AlertUtil.error("Cannot complete order", problem);
+            return;
+        }
+
+        String payment = askPaymentMethod(customer, cartTotal());
+        if (payment == null) {
+            orderSummaryLabel.setStyle("-fx-text-fill: #7f8c8d; -fx-font-weight: bold;");
+            orderSummaryLabel.setText("Checkout cancelled - nothing was charged.");
+            return;
+        }
+
+        InventoryService.OrderResult result = service.placeCartOrder(List.copyOf(cart), customer, payment);
         if (result.success()) {
-            orderSummaryLabel.setStyle("-fx-text-fill: #1e8449; -fx-font-weight: bold;");
-            orderSummaryLabel.setText("Order placed! Check the receipt and order history.");
-            AlertUtil.info("Order confirmed", result.message());
+            showOrderMessage(result.message(), true);
             cart.clear();
             refreshCartTotal();
+            customerNameField.clear();
+            BillDialog.show(cartTable.getScene().getWindow(), result.order());
         } else {
-            orderSummaryLabel.setStyle("-fx-text-fill: #c0392b; -fx-font-weight: bold;");
-            orderSummaryLabel.setText(result.message());
+            showOrderMessage(result.message(), false);
             AlertUtil.error("Cannot complete order", result.message());
         }
     }
 
-    private void refreshCartTotal() {
-        double total = cart.stream()
+    /** Payment step: the customer picks one of several payment methods (radio buttons). */
+    private String askPaymentMethod(String customer, double total) {
+        ToggleGroup group = new ToggleGroup();
+        VBox box = new VBox(8);
+        box.setPadding(new Insets(10));
+        box.getChildren().add(new Label("Choose a payment method:"));
+        for (String method : InventoryService.PAYMENT_METHODS) {
+            RadioButton radio = new RadioButton(method);
+            radio.setToggleGroup(group);
+            radio.setUserData(method);
+            if ("Cash".equals(method)) radio.setSelected(true);
+            box.getChildren().add(radio);
+        }
+
+        ButtonType confirm = new ButtonType("Confirm payment", ButtonBar.ButtonData.OK_DONE);
+        Dialog<String> dialog = new Dialog<>();
+        dialog.setTitle("Payment");
+        dialog.setHeaderText("Customer: " + customer + "\nAmount to pay: " + InventoryService.taka(total));
+        dialog.getDialogPane().setContent(box);
+        dialog.getDialogPane().getButtonTypes().addAll(confirm, ButtonType.CANCEL);
+        dialog.setResultConverter(button -> button == confirm && group.getSelectedToggle() != null
+                ? (String) group.getSelectedToggle().getUserData() : null);
+        return dialog.showAndWait().orElse(null);
+    }
+
+    /** Opens the bill of the order selected in the history list. */
+    @FXML
+    private void onViewBill() {
+        OrderRecord selected = historyList.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            AlertUtil.warning("Nothing selected", "Click an order in the history list first.");
+            return;
+        }
+        BillDialog.show(historyList.getScene().getWindow(), selected);
+    }
+
+    private void showOrderMessage(String message, boolean ok) {
+        orderSummaryLabel.setStyle(ok ? "-fx-text-fill: #1e8449; -fx-font-weight: bold;"
+                                      : "-fx-text-fill: #c0392b; -fx-font-weight: bold;");
+        orderSummaryLabel.setText(message);
+    }
+
+    private double cartTotal() {
+        return cart.stream()
                 .mapToDouble(line -> service.getDiscountedPrice(line.getDish()) * line.getQuantity())
                 .sum();
+    }
+
+    private void refreshCartTotal() {
+        double total = cartTotal();
         int items = cart.stream().mapToInt(CartLine::getQuantity).sum();
         cartTotalLabel.setText(String.format("Cart: %d dish(es), %d item(s)   Total: %s",
                 cart.size(), items, InventoryService.taka(total)));

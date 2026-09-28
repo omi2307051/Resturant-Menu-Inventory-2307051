@@ -20,7 +20,8 @@ import java.util.List;
  *   ingredients(name TEXT PRIMARY KEY, unit TEXT, quantity REAL, min_level REAL)
  *   staff(id INTEGER PRIMARY KEY AUTOINCREMENT, name, gender, skill_level, country,
  *         date_of_birth TEXT, hobbies, photo_file, role)
- *   orders(id INTEGER PRIMARY KEY AUTOINCREMENT, summary TEXT, total REAL, placed_at TEXT)
+ *   orders(id INTEGER PRIMARY KEY AUTOINCREMENT, summary TEXT, total REAL, placed_at TEXT,
+ *          customer_name TEXT, payment_method TEXT, items TEXT, bill_text TEXT)
  *
  * "staff" and "ingredients" are the two tables with a real relationship in this app:
  * every RecipeLine links a Dish (in memory) to an Ingredient row, and a placed order
@@ -55,7 +56,8 @@ public final class DatabaseManager {
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, gender TEXT, skill_level TEXT, " +
                 "country TEXT, date_of_birth TEXT, hobbies TEXT, photo_file TEXT, role TEXT)";
         String ordersSql = "CREATE TABLE IF NOT EXISTS orders (" +
-                "id INTEGER PRIMARY KEY AUTOINCREMENT, summary TEXT NOT NULL, total REAL NOT NULL, placed_at TEXT NOT NULL)";
+                "id INTEGER PRIMARY KEY AUTOINCREMENT, summary TEXT NOT NULL, total REAL NOT NULL, placed_at TEXT NOT NULL, " +
+                "customer_name TEXT, payment_method TEXT, items TEXT, bill_text TEXT)";
 
         try (Connection conn = connect(); Statement st = conn.createStatement()) {
             st.execute(ingredientsSql);
@@ -75,6 +77,15 @@ public final class DatabaseManager {
             st.execute("ALTER TABLE staff ADD COLUMN role TEXT");
         } catch (SQLException ignored) {
             // column already exists - nothing to do
+        }
+
+        // MIGRATION: older "orders" tables have no customer / payment / bill columns - add them.
+        for (String column : new String[]{"customer_name TEXT", "payment_method TEXT", "items TEXT", "bill_text TEXT"}) {
+            try (Connection conn = connect(); Statement st = conn.createStatement()) {
+                st.execute("ALTER TABLE orders ADD COLUMN " + column);
+            } catch (SQLException ignored) {
+                // column already exists - nothing to do
+            }
         }
 
         // BACKFILL: any row written before the "role" column existed now has role = NULL
@@ -216,30 +227,63 @@ public final class DatabaseManager {
         }
     }
 
-    // ======================================================================= ORDERS (Create + Read)
+    // ======================================================================= ORDERS (Create + Read + bill update)
 
-    /** CREATE: logs a placed order permanently (survives app restarts, unlike orderHistory in memory). */
-    public static void insertOrder(String summary, double total, String placedAtIso) {
-        if (!available) return;
-        String sql = "INSERT INTO orders(summary, total, placed_at) VALUES (?,?,?)";
-        try (Connection conn = connect(); PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, summary);
+    /**
+     * CREATE: logs a placed order permanently (survives app restarts).
+     * Returns the generated order id (used as the bill number), or -1 if the database is unavailable.
+     * The bill text is saved afterwards with {@link #updateOrderBill(int, String)} because it contains the id.
+     */
+    public static int insertOrder(String customer, String paymentMethod, String items,
+                                  double total, String placedAtIso) {
+        if (!available) return -1;
+        String sql = "INSERT INTO orders(summary, total, placed_at, customer_name, payment_method, items, bill_text) " +
+                "VALUES (?,?,?,?,?,?,'')";
+        try (Connection conn = connect();
+             PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            ps.setString(1, items);
             ps.setDouble(2, total);
             ps.setString(3, placedAtIso);
+            ps.setString(4, customer);
+            ps.setString(5, paymentMethod);
+            ps.setString(6, items);
             ps.executeUpdate();
+            try (ResultSet keys = ps.getGeneratedKeys()) {
+                return keys.next() ? keys.getInt(1) : -1;
+            }
         } catch (SQLException e) {
             System.err.println("[DatabaseManager] insertOrder failed: " + e.getMessage());
+            return -1;
         }
     }
 
-    /** READ: every order ever placed (all-time history, from the database rather than memory). */
+    /** UPDATE: stores the printed bill text for an order. */
+    public static void updateOrderBill(int id, String billText) {
+        if (!available || id < 0) return;
+        String sql = "UPDATE orders SET bill_text = ? WHERE id = ?";
+        try (Connection conn = connect(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, billText);
+            ps.setInt(2, id);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            System.err.println("[DatabaseManager] updateOrderBill failed: " + e.getMessage());
+        }
+    }
+
+    /**
+     * READ: every order ever placed, newest first, as
+     * {id, customer, paymentMethod, items, total, placedAtIso, billText}.
+     * Columns that older rows do not have come back as null.
+     */
     public static List<Object[]> readAllOrders() {
         List<Object[]> rows = new ArrayList<>();
         if (!available) return rows;
-        String sql = "SELECT summary, total, placed_at FROM orders ORDER BY id DESC";
+        String sql = "SELECT id, customer_name, payment_method, COALESCE(items, summary), total, placed_at, bill_text " +
+                "FROM orders ORDER BY id DESC";
         try (Connection conn = connect(); Statement st = conn.createStatement(); ResultSet rs = st.executeQuery(sql)) {
             while (rs.next()) {
-                rows.add(new Object[]{ rs.getString(1), rs.getDouble(2), rs.getString(3) });
+                rows.add(new Object[]{ rs.getInt(1), rs.getString(2), rs.getString(3), rs.getString(4),
+                        rs.getDouble(5), rs.getString(6), rs.getString(7) });
             }
         } catch (SQLException e) {
             System.err.println("[DatabaseManager] readAllOrders failed: " + e.getMessage());

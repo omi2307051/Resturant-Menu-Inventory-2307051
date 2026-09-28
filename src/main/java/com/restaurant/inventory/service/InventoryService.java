@@ -3,9 +3,11 @@ package com.restaurant.inventory.service;
 import com.restaurant.inventory.model.CartLine;
 import com.restaurant.inventory.model.Dish;
 import com.restaurant.inventory.model.Ingredient;
+import com.restaurant.inventory.model.OrderRecord;
 import com.restaurant.inventory.model.Person;
 import com.restaurant.inventory.model.RecipeLine;
 import com.restaurant.inventory.model.Reportable;
+import com.restaurant.inventory.util.BillFormatter;
 import com.restaurant.inventory.util.DatabaseManager;
 import com.restaurant.inventory.util.NetworkUtil;
 import javafx.beans.Observable;
@@ -26,8 +28,8 @@ import java.nio.file.Files;
 import java.time.DayOfWeek;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -46,7 +48,12 @@ import java.util.stream.Collectors;
 public final class InventoryService {
 
     /** Result of trying to place an order. */
-    public record OrderResult(boolean success, String message) { }
+    public record OrderResult(boolean success, String message, OrderRecord order) {
+        public OrderResult(boolean success, String message) { this(success, message, null); }
+    }
+
+    /** Payment options offered at checkout. */
+    public static final List<String> PAYMENT_METHODS = List.of("Cash", "bKash", "Nagad", "Rocket", "Card");
 
     /** One day's promotion: which category is discounted, by how much, and its promo name. */
     public record DiscountRule(String category, int percent, String promoName) { }
@@ -79,7 +86,9 @@ public final class InventoryService {
             FXCollections.observableArrayList(i -> new Observable[]{ i.quantityProperty() });
     private final ObservableList<Dish> dishes = FXCollections.observableArrayList();
     private final ObservableList<Person> staff = FXCollections.observableArrayList();
-    private final ObservableList<String> orderHistory = FXCollections.observableArrayList();
+    private final ObservableList<OrderRecord> orderHistory = FXCollections.observableArrayList();
+    /** Bill numbers to use when the database is unavailable. */
+    private int fallbackBillNo = 0;
 
     private final ReadOnlyStringWrapper stockAlert = new ReadOnlyStringWrapper();
     private final IntegerProperty stockVersion = new SimpleIntegerProperty(0);
@@ -100,6 +109,7 @@ public final class InventoryService {
         DatabaseManager.initSchema();
         seedData();
         seedStaffIfEmpty();
+        loadTodaysOrders();
         ingredients.addListener((ListChangeListener<Ingredient>) change -> updateAlert());
         updateAlert();
     }
@@ -112,7 +122,7 @@ public final class InventoryService {
     public ObservableList<Ingredient> getIngredients() { return ingredients; }
     public ObservableList<Dish> getDishes() { return dishes; }
     public ObservableList<Person> getStaff() { return staff; }
-    public ObservableList<String> getOrderHistory() { return orderHistory; }
+    public ObservableList<OrderRecord> getOrderHistory() { return orderHistory; }
 
     /** Text such as "OUT OF STOCK ingredients: Cheese Slice | Cannot be ordered right now: Cheeseburger". */
     public ReadOnlyStringProperty stockAlertProperty() { return stockAlert.getReadOnlyProperty(); }
@@ -206,50 +216,22 @@ public final class InventoryService {
         return String.format("%s (%s): %d%% OFF %s!", rule.promoName(), today, rule.percent(), target);
     }
 
-    // ------------------------------------------------------------------ SINGLE-DISH ORDER
+    // ------------------------------------------------------------------ ORDERS (customer + payment + bill)
 
-    /**
-     * Try to prepare 'quantity' servings of ONE dish (today's discount is applied automatically).
-     * If every ingredient is available -> deduct them from stock and log the order.
-     * Otherwise -> change nothing and explain what is missing.
-     */
+    /** Single-dish convenience: a walk-in customer paying cash. */
     public OrderResult placeOrder(Dish dish, int quantity) {
-        List<String> missing = dish.missingIngredients(quantity);
-        if (!missing.isEmpty()) {
-            return new OrderResult(false, "Cannot prepare " + quantity + " x " + dish.getName()
-                    + ". Not enough: " + String.join(", ", missing));
-        }
-
-        for (RecipeLine line : dish.getRecipe()) {
-            Ingredient ingredient = line.getIngredient();
-            ingredient.deduct(line.getAmount() * quantity);
-            DatabaseManager.upsertIngredient(ingredient.getName(), ingredient.getUnit(),
-                    ingredient.getQuantity(), ingredient.getMinLevel());
-        }
-
-        double total = getDiscountedPrice(dish) * quantity;
-        todaysRevenue.set(todaysRevenue.get() + total);
-        String time = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
-        String summary = String.format("%d x %s", quantity, dish.getName());
-        orderHistory.add(0, String.format("%s   %s   (%s)", time, summary, taka(total)));
-        DatabaseManager.insertOrder(summary, total, Instant.now().toString());
-
-        return new OrderResult(true, String.format("Order placed: %d x %s  -  total %s. Ingredients deducted from stock.",
-                quantity, dish.getName(), taka(total)));
+        return placeCartOrder(List.of(new CartLine(dish, quantity)), "Walk-in", "Cash");
     }
 
-    // ------------------------------------------------------------------ MULTI-DISH ORDER (CART)
-
     /**
-     * Places an entire cart of dishes (several different dishes, each found by name)
-     * as ONE transaction: every line must be available, otherwise nothing at all is
-     * deducted. Today's per-category discount is applied to every line automatically.
+     * Checks that the whole cart can be prepared. Returns null when everything is fine,
+     * otherwise a message explaining what is wrong (empty cart / which ingredients are short).
+     * Nothing is changed by this method.
      */
-    public OrderResult placeCartOrder(List<CartLine> cart) {
+    public String checkCartProblems(List<CartLine> cart) {
         if (cart == null || cart.isEmpty()) {
-            return new OrderResult(false, "Your cart is empty. Type a dish name and click \"Add to Cart\" first.");
+            return "Your cart is empty. Type a dish name and click \"Add to Cart\" first.";
         }
-
         List<String> problems = new ArrayList<>();
         for (CartLine line : cart) {
             List<String> missing = line.getDish().missingIngredients(line.getQuantity());
@@ -257,14 +239,33 @@ public final class InventoryService {
                 problems.add(line.getDish().getName() + ": " + String.join(", ", missing));
             }
         }
-        if (!problems.isEmpty()) {
-            return new OrderResult(false, "Cannot place this order - not enough stock for:\n"
-                    + String.join("\n", problems));
+        return problems.isEmpty() ? null
+                : "Cannot place this order - not enough stock for:\n" + String.join("\n", problems);
+    }
+
+    /**
+     * Places an entire cart for a named customer as ONE transaction: every line must be available,
+     * otherwise nothing at all is deducted. On success the ingredients are deducted, a bill is
+     * produced, and the order (customer, items, payment method, total, bill) is saved to the
+     * order history and to the database. Today's per-category discount is applied automatically.
+     */
+    public OrderResult placeCartOrder(List<CartLine> cart, String customerName, String paymentMethod) {
+        String customer = customerName == null ? "" : customerName.trim();
+        if (customer.isEmpty()) {
+            return new OrderResult(false, "Please enter the customer name before placing the order.");
+        }
+        if (paymentMethod == null || paymentMethod.isBlank()) {
+            return new OrderResult(false, "Please choose a payment method.");
+        }
+        String problem = checkCartProblems(cart);
+        if (problem != null) {
+            return new OrderResult(false, problem);
         }
 
+        double subtotal = 0;
         double grandTotal = 0;
-        StringBuilder receipt = new StringBuilder();
-        int dishCount = 0;
+        List<BillFormatter.Line> billLines = new ArrayList<>();
+        List<String> itemParts = new ArrayList<>();
         for (CartLine line : cart) {
             Dish dish = line.getDish();
             int qty = line.getQuantity();
@@ -274,24 +275,58 @@ public final class InventoryService {
                 DatabaseManager.upsertIngredient(ingredient.getName(), ingredient.getUnit(),
                         ingredient.getQuantity(), ingredient.getMinLevel());
             }
-            double unitPrice = getDiscountedPrice(dish);
-            double lineTotal = unitPrice * qty;
-            grandTotal += lineTotal;
-            dishCount += qty;
-            receipt.append(String.format("  %d x %-24s %s%n", qty, dish.getName(), taka(lineTotal)));
+            double fullPrice = dish.getPrice() * qty;
+            subtotal += fullPrice;
+            grandTotal += getDiscountedPrice(dish) * qty;
+            billLines.add(new BillFormatter.Line(dish.getName(), qty, dish.getPrice(), fullPrice));
+            itemParts.add(qty + " x " + dish.getName());
         }
 
-        todaysRevenue.set(todaysRevenue.get() + grandTotal);
-        String time = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
-        String summary = String.format("%d dish(es), %d item(s)", cart.size(), dishCount);
-        orderHistory.add(0, String.format("%s   %s   Total %s", time, summary, taka(grandTotal)));
-        DatabaseManager.insertOrder(summary, grandTotal, Instant.now().toString());
+        String items = String.join(", ", itemParts);
+        LocalDateTime now = LocalDateTime.now();
 
-        return new OrderResult(true, "Order placed! Ingredients deducted from stock.\n\n"
-                + receipt + "\nGrand total: " + taka(grandTotal));
+        // The database row id doubles as the bill number; the bill text (which contains that number)
+        // is saved right after the row is created.
+        int id = DatabaseManager.insertOrder(customer, paymentMethod, items, grandTotal, Instant.now().toString());
+        int billNo = id > 0 ? id : ++fallbackBillNo;
+        String bill = BillFormatter.build(billNo, now, customer, paymentMethod, billLines,
+                getTodayDiscountRule().promoName(), subtotal, grandTotal);
+        DatabaseManager.updateOrderBill(id, bill);
+
+        OrderRecord record = new OrderRecord(billNo, customer, paymentMethod, items, grandTotal, now, bill);
+        todaysRevenue.set(todaysRevenue.get() + grandTotal);
+        orderHistory.add(0, record);
+
+        return new OrderResult(true, String.format("Order #%d placed for %s - total %s, paid via %s.",
+                billNo, customer, taka(grandTotal), paymentMethod), record);
     }
 
-    /** Puts every ingredient back to its starting quantity and clears the order history + today's sales. */
+    /** Startup: reloads today's orders (newest first) and today's sales from the database. */
+    private void loadTodaysOrders() {
+        LocalDate today = LocalDate.now();
+        double revenue = 0;
+        List<OrderRecord> loaded = new ArrayList<>();
+        for (Object[] row : DatabaseManager.readAllOrders()) {
+            try {
+                LocalDateTime placed = LocalDateTime.ofInstant(Instant.parse((String) row[5]), ZoneId.systemDefault());
+                if (!placed.toLocalDate().equals(today)) continue;
+
+                String customer = row[1] == null || ((String) row[1]).isBlank() ? "Walk-in" : (String) row[1];
+                String payment = row[2] == null || ((String) row[2]).isBlank() ? "N/A" : (String) row[2];
+                double total = (double) row[4];
+                String bill = row[6] == null || ((String) row[6]).isBlank()
+                        ? "(No bill was saved for this order.)" : (String) row[6];
+                loaded.add(new OrderRecord((int) row[0], customer, payment, (String) row[3], total, placed, bill));
+                revenue += total;
+            } catch (Exception ignored) {
+                // malformed legacy row - skip it rather than crash at startup
+            }
+        }
+        orderHistory.addAll(loaded);
+        todaysRevenue.set(revenue);
+    }
+
+    /** Puts every ingredient back to its starting quantity and clears the on-screen order history + today's sales (saved orders stay in the database). */
     public void resetToDefaults() {
         for (Ingredient ingredient : ingredients) {
             ingredient.setQuantity(ingredient.getDefaultQuantity());
