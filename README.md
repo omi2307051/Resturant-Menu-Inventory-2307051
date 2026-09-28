@@ -4,6 +4,10 @@ Connects **menu items to ingredient stock**.
 When a dish is ordered, the ingredients it needs are **deducted from inventory**, and anything that
 is **out of stock** is shown (red in lists/tables, in the bottom status bar, and in alert dialogs).
 
+Every dish on the 190-item menu now has a real recipe (`.needs(...)` in `InventoryService.seedData()`),
+backed by 91 tracked ingredients, so the "Ingredients needed" table on the Orders tab is always
+populated - no more "No content in table".
+
 ## Run it
 
 Requirements: **JDK 17+** and **Maven** (JavaFX is downloaded automatically by Maven).
@@ -77,11 +81,22 @@ restaurant_inventory.db          created automatically on first run (SQLite data
 1. **Orders** > select *Special House Burger*, quantity 3 > **Place Order**. Beef Patty hits 0, a warning
    appears, the dish turns red and the status bar lists what is out of stock.
 2. Set quantity 1 and order again - an error alert says which ingredient is short.
-3. Order *Beef Steak* x6: Beef Steak Cut drops low/out, so other beef dishes that share it
-   (Adana Kebab, Beef Nihari, Special House Pizza, Lasagna) become unavailable too.
+3. Order *Beef Steak* x6: Beef Steak Cut drops low/out, so other dishes that share it
+   (Adana Kebab, Beef Nihari, Special House Pizza, Lasagna, Beef Curry, Beef Chow Mein, ...) become
+   unavailable too - every dish that uses an ingredient reacts, not just the "Chef's Special" ones.
 4. **Inventory** > click *Beef Patty*, type `10` > **Restock**. The Special House Burger is available again.
 5. **Inventory** > type `5` in the Accumulate box and press the button 5 times: the bar fills up.
-6. **File > New** resets the day; **File > Open...** with `sample-stock.csv` loads new stock levels.
+6. **File > New** resets the day; **File > Open...** with `sample-stock.csv` loads new stock levels
+   (now covers all 91 ingredients, including the ones only simple/non-special dishes use, e.g. Potato,
+   Milk, Tea Leaves, Tortilla Wrap, Lettuce).
+
+## Recipe coverage
+
+`InventoryService.seedData()` declares 91 ingredients (26 original + 65 added) and gives all 190 dishes
+a `.needs(ingredient, amountPerServing)` recipe - so the Orders tab's "Ingredients needed" table is
+populated for every dish, not just the 15 that were recipe-tracked before. The 12 dishes on the
+restaurant's own "Chef's Special" board keep their `.special()` star badge; recipe amounts are
+per-serving and scale with the quantity Spinner.
 
 Notes: the ProgressBar rule is implemented literally - each press adds the typed number N to the sum,
 and the bar is full after N presses. Passwords in the Staff form are only validated (min 4 characters)
