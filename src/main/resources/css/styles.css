@@ -432,3 +432,32 @@
     -fx-text-fill: white;
     -fx-font-weight: bold;
 }
+
+/* ------------------------------------------------- weather card (Menu tab) */
+.weather-card {
+    -fx-background-color: rgba(255, 255, 255, 0.88);
+    -fx-background-radius: 10;
+    -fx-border-color: #90caf9;
+    -fx-border-radius: 10;
+    -fx-padding: 10 14 10 14;
+}
+.weather-title {
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1565c0;
+}
+.weather-offer {
+    -fx-font-weight: bold;
+    -fx-text-fill: #d84315;
+}
+.weather-chip {
+    -fx-background-color: #fff3e0;
+    -fx-border-color: #ff9800;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    -fx-font-size: 12px;
+    -fx-cursor: hand;
+}
+.weather-chip:hover {
+    -fx-background-color: #ffe0b2;
+}

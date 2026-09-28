@@ -3,6 +3,7 @@ package com.restaurant.inventory.util;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Builds the plain-text "bill paper" (receipt) for one order.
@@ -33,11 +34,13 @@ public final class BillFormatter {
     }
 
     /**
-     * @param subtotal total at full menu prices
-     * @param total    total actually payable (after today's discount)
+     * @param discounts money taken off, per promotion name (e.g. "Burger Monday" -> 45.00,
+     *                  "Cool Down Deal" -> 12.00); may be empty
+     * @param subtotal  total at full menu prices
+     * @param total     total actually payable (after discounts)
      */
     public static String build(int billNo, LocalDateTime time, String customer, String paymentMethod,
-                               List<Line> lines, String promoName, double subtotal, double total) {
+                               List<Line> lines, Map<String, Double> discounts, double subtotal, double total) {
         String bar = "=".repeat(WIDTH);
         String dash = "-".repeat(WIDTH);
         StringBuilder sb = new StringBuilder();
@@ -67,12 +70,17 @@ public final class BillFormatter {
         double discount = subtotal - total;
         if (discount > 0.005) {
             sb.append(String.format("%-28s %17s", "Subtotal", taka(subtotal))).append('\n');
-            sb.append(String.format("%-28s %17s", clip("Discount (" + promoName + ")", 28),
-                    "-" + taka(discount))).append('\n');
+            for (Map.Entry<String, Double> entry : discounts.entrySet()) {
+                sb.append(String.format("%-28s %17s", clip("Discount (" + entry.getKey() + ")", 28),
+                        "-" + taka(entry.getValue()))).append('\n');
+            }
         }
         sb.append(String.format("%-28s %17s", "TOTAL TO PAY", taka(total))).append('\n');
         sb.append(dash).append('\n');
         sb.append("Paid via : ").append(paymentMethod).append('\n');
+        if (PaymentQr.supports(paymentMethod)) {
+            sb.append("Pay ref  : ").append(PaymentQr.reference(billNo)).append('\n');
+        }
         sb.append("Status   : PAID").append('\n');
         sb.append(bar).append('\n');
         sb.append(center("Thank you, " + clip(customer, 24) + "!")).append('\n');

@@ -27,7 +27,8 @@ src/main/java/com/restaurant/inventory
   model/    Person, Ingredient, Dish, RecipeLine, OrderRecord, MenuItem (abstract), Reportable (interface)
   service/  InventoryService     all data + the "order -> deduct stock" logic + thread pool
   controller/  Main / Order / Inventory / Menu / Staff / Tools controllers
-  util/     AlertUtil, DatabaseManager (SQLite), NetworkUtil (HTTP + JSON), BillFormatter + BillDialog (bill paper)
+  util/     AlertUtil, DatabaseManager (SQLite), NetworkUtil (HTTP + JSON), WeatherClient + WeatherSuggester (Open-Meteo),
+            FoodFactsClient (Open Food Facts), PaymentQr + QrUtil (payment QR), BillFormatter + BillDialog (bill paper)
 src/main/resources
   fxml/     MainView + one FXML per tab
   css/      styles.css
@@ -48,6 +49,9 @@ restaurant_inventory.db          created automatically on first run (SQLite data
 | **Database integration (SQLite)** | `util/DatabaseManager.java` - tables `ingredients`, `staff`, `orders` (customer, payment method, items, total, bill text) in `restaurant_inventory.db` |
 | **CRUD** | Ingredients: Create/Read (seed + File>Open), Update (Restock), Delete (Delete ingredient). Staff: Create (Submit), Read (table), Update (Promote skill), Delete (Remove selected) - all backed by SQLite |
 | **Networking & data parsing** | `util/NetworkUtil.java` - HTTP GET with `java.net.http.HttpClient`, JSON parsed with `org.json` ("Fetch live rate" button, Kitchen Tools tab) |
+| **Weather API (Open-Meteo)** | `util/WeatherClient.java` fetches Khulna's live weather (no API key) at start-up; `util/WeatherSuggester.java` turns it into a weather deal (suggested dishes + 8-12% off); `InventoryService.getDiscountPercent()` uses the better of the weekday promo and the weather deal. Shown on the **Menu** tab. |
+| **Nutrition API (Open Food Facts)** | `util/FoodFactsClient.java` - calories, macros, Nutri-Score and allergens of the closest matching product (**Inventory** tab, "Look up nutrition"). Rate-limited and cached to respect the 10 searches/minute limit. |
+| **QR code on the bill** | `util/PaymentQr.java` (which methods get a QR + what it contains) and `util/QrUtil.java` (ZXing, offline). bKash / Nagad / Rocket show a QR in the payment dialog and on the bill. **Replace the placeholder merchant numbers in `PaymentQr.java` before real use.** |
 
 ## Where each topic is used
 

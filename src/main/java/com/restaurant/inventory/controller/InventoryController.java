@@ -3,6 +3,7 @@ package com.restaurant.inventory.controller;
 import com.restaurant.inventory.model.Ingredient;
 import com.restaurant.inventory.service.InventoryService;
 import com.restaurant.inventory.util.AlertUtil;
+import com.restaurant.inventory.util.FoodFactsClient;
 import javafx.collections.ListChangeListener;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
@@ -46,6 +47,10 @@ public class InventoryController implements Initializable {
     // supplier price check (concurrency demo)
     @FXML private Button checkSupplierButton;
     @FXML private Label supplierPriceLabel;
+
+    // nutrition lookup (Open Food Facts)
+    @FXML private Button nutritionButton;
+    @FXML private Label nutritionLabel;
 
     // accumulate / progress panel
     @FXML private TextField targetField;
@@ -192,6 +197,41 @@ public class InventoryController implements Initializable {
             supplierPriceLabel.textProperty().unbind();
             supplierPriceLabel.setText("Could not reach the supplier. Please try again.");
             checkSupplierButton.setDisable(false);
+        });
+
+        service.getExecutor().submit(task);
+    }
+
+    // ================================================================= NETWORKING (Open Food Facts)
+
+    /**
+     * Looks the selected ingredient up in the Open Food Facts database (background Task, like the
+     * supplier check) and shows calories, macros, Nutri-Score and allergens of the closest match.
+     */
+    @FXML
+    private void onLookupNutrition() {
+        Ingredient ingredient = ingredientTable.getSelectionModel().getSelectedItem();
+        if (ingredient == null) {
+            AlertUtil.warning("Nothing selected", "Click an ingredient in the table first.");
+            return;
+        }
+
+        Task<FoodFactsClient.Nutrition> task = service.fetchNutritionTask(ingredient);
+        nutritionLabel.textProperty().bind(task.messageProperty());
+        nutritionButton.setDisable(true);
+
+        task.setOnSucceeded(event -> {
+            nutritionLabel.textProperty().unbind();
+            FoodFactsClient.Nutrition nutrition = task.getValue();
+            nutritionLabel.setText(nutrition == null
+                    ? "No product with nutrition data was found for \"" + ingredient.getName() + "\"."
+                    : nutrition.toDisplayText(ingredient.getName()));
+            nutritionButton.setDisable(false);
+        });
+        task.setOnFailed(event -> {
+            nutritionLabel.textProperty().unbind();
+            nutritionLabel.setText("Could not reach Open Food Facts (check your internet connection and try again).");
+            nutritionButton.setDisable(false);
         });
 
         service.getExecutor().submit(task);

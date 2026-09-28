@@ -12,7 +12,20 @@
     </padding>
 
     <top>
-        <Label fx:id="todaysDiscountLabel" styleClass="discount-banner" wrapText="true" maxWidth="Infinity"/>
+        <VBox spacing="8">
+            <Label fx:id="todaysDiscountLabel" styleClass="discount-banner" wrapText="true" maxWidth="Infinity"/>
+
+            <!-- Live weather (Open-Meteo API) + weather deal -->
+            <VBox styleClass="weather-card" spacing="5">
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <Label fx:id="weatherTitleLabel" styleClass="weather-title" wrapText="true" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                    <Button fx:id="refreshWeatherButton" text="Refresh weather" onAction="#onRefreshWeather"/>
+                </HBox>
+                <Label fx:id="weatherDetailsLabel" wrapText="true"/>
+                <Label fx:id="weatherOfferLabel" styleClass="weather-offer" wrapText="true"/>
+                <FlowPane fx:id="weatherPicksPane" hgap="8" vgap="6"/>
+            </VBox>
+        </VBox>
     </top>
 
     <left>

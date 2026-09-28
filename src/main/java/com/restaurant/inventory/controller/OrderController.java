@@ -8,6 +8,9 @@ import com.restaurant.inventory.model.RecipeLine;
 import com.restaurant.inventory.service.InventoryService;
 import com.restaurant.inventory.util.AlertUtil;
 import com.restaurant.inventory.util.BillDialog;
+import com.restaurant.inventory.util.PaymentQr;
+import com.restaurant.inventory.util.QrUtil;
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -15,6 +18,7 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
@@ -94,8 +98,8 @@ public class OrderController implements Initializable {
         // ---------- Spinner: numeric quantity 1..10, start value 1
         qtySpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 10, 1));
 
-        // ---------- today's discount banner
-        todaysDiscountLabel.setText("\uD83C\uDF89  " + service.getTodayDiscountText());
+        // ---------- today's discount banner (also mentions the live weather deal, once loaded)
+        refreshBanner();
 
         // ---------- ListView of dishes, colour-coded by category, out-of-stock shown in red
         dishList.setItems(service.getDishes());
@@ -132,10 +136,17 @@ public class OrderController implements Initializable {
         service.stockVersionProperty().addListener((observable, oldValue, newValue) -> {
             dishList.refresh();
             refreshSelectedLabel();
+            refreshBanner();
+            cartTable.refresh();      // a new weather deal can change prices already in the cart
+            refreshCartTotal();
         });
 
         dishList.getSelectionModel().selectFirst();
         refreshCartTotal();
+    }
+
+    private void refreshBanner() {
+        todaysDiscountLabel.setText("\uD83C\uDF89  " + service.getTodayDiscountText() + service.getWeatherBannerText());
     }
 
     // ================================================================= DISH LIST CELL (colour-coded)
@@ -333,7 +344,11 @@ public class OrderController implements Initializable {
         }
     }
 
-    /** Payment step: the customer picks one of several payment methods (radio buttons). */
+    /**
+     * Payment step: the customer picks one of several payment methods (radio buttons).
+     * For the mobile wallets (bKash / Nagad / Rocket) a QR code with the payment details appears
+     * beside the choices so the customer can scan it; Cash and Card need no QR code.
+     */
     private String askPaymentMethod(String customer, double total) {
         ToggleGroup group = new ToggleGroup();
         VBox box = new VBox(8);
@@ -347,15 +362,55 @@ public class OrderController implements Initializable {
             box.getChildren().add(radio);
         }
 
+        // QR panel: hidden (and takes no space) until a wallet method is selected
+        ImageView qrView = new ImageView();
+        qrView.setFitWidth(170);
+        qrView.setFitHeight(170);
+        qrView.setPreserveRatio(true);
+        Label qrCaption = new Label();
+        qrCaption.setWrapText(true);
+        qrCaption.setMaxWidth(190);
+        VBox qrBox = new VBox(6, qrView, qrCaption);
+        qrBox.setAlignment(Pos.TOP_CENTER);
+        qrBox.setVisible(false);
+        qrBox.setManaged(false);
+        group.selectedToggleProperty().addListener((observable, oldToggle, newToggle) -> {
+            showPaymentQr(newToggle == null ? null : (String) newToggle.getUserData(),
+                    customer, total, qrView, qrCaption, qrBox);
+            Platform.runLater(() -> {
+                if (box.getScene() != null && box.getScene().getWindow() != null) {
+                    box.getScene().getWindow().sizeToScene();
+                }
+            });
+        });
+        HBox content = new HBox(20, box, qrBox);
+
         ButtonType confirm = new ButtonType("Confirm payment", ButtonBar.ButtonData.OK_DONE);
         Dialog<String> dialog = new Dialog<>();
         dialog.setTitle("Payment");
         dialog.setHeaderText("Customer: " + customer + "\nAmount to pay: " + InventoryService.taka(total));
-        dialog.getDialogPane().setContent(box);
+        dialog.getDialogPane().setContent(content);
         dialog.getDialogPane().getButtonTypes().addAll(confirm, ButtonType.CANCEL);
         dialog.setResultConverter(button -> button == confirm && group.getSelectedToggle() != null
                 ? (String) group.getSelectedToggle().getUserData() : null);
         return dialog.showAndWait().orElse(null);
+    }
+
+    /** Shows or hides the payment QR for the chosen method (see {@link PaymentQr} and {@link QrUtil}). */
+    private void showPaymentQr(String method, String customer, double total,
+                               ImageView qrView, Label qrCaption, VBox qrBox) {
+        boolean show = PaymentQr.supports(method);
+        if (show) {
+            try {
+                qrView.setImage(QrUtil.toImage(PaymentQr.payload(method, customer, total, "P22-NEW"), 340));
+                qrCaption.setText("Scan to pay " + InventoryService.taka(total) + " with " + method
+                        + ", then press \"Confirm payment\".");
+            } catch (Exception e) {
+                show = false;   // QR could not be drawn - the customer can still pay and confirm normally
+            }
+        }
+        qrBox.setVisible(show);
+        qrBox.setManaged(show);
     }
 
     /** Opens the bill of the order selected in the history list. */

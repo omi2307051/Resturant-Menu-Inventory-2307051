@@ -23,7 +23,35 @@ public final class NetworkUtil {
 
     private static final String EXCHANGE_RATE_URL = "https://api.exchangerate-api.com/v4/latest/USD";
 
+    /** Sent with every request - Open Food Facts asks API users to identify their app. */
+    private static final String USER_AGENT = "Pavillion22-RestaurantInventory/1.0 (student JavaFX project)";
+
+    private static final HttpClient SHARED_CLIENT = HttpClient.newBuilder()
+            .connectTimeout(Duration.ofSeconds(8))
+            .build();
+
     private NetworkUtil() { }
+
+    /**
+     * Generic HTTP GET that returns the response body as text (used by the weather and
+     * nutrition clients). Blocks, so call it from a background thread only.
+     *
+     * @throws RuntimeException if the server answers with anything other than HTTP 200
+     */
+    public static String httpGet(String url, int timeoutSeconds) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .timeout(Duration.ofSeconds(timeoutSeconds))
+                .header("User-Agent", USER_AGENT)
+                .header("Accept", "application/json")
+                .GET()
+                .build();
+        HttpResponse<String> response = SHARED_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
+        if (response.statusCode() != 200) {
+            throw new RuntimeException("Server returned HTTP " + response.statusCode());
+        }
+        return response.body();
+    }
 
     /**
      * Fetches the current USD -> BDT exchange rate.

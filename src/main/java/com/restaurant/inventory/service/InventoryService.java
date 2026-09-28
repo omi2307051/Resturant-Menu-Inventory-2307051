@@ -7,30 +7,41 @@ import com.restaurant.inventory.model.OrderRecord;
 import com.restaurant.inventory.model.Person;
 import com.restaurant.inventory.model.RecipeLine;
 import com.restaurant.inventory.model.Reportable;
+import com.restaurant.inventory.model.WeatherInfo;
+import com.restaurant.inventory.model.WeatherOffer;
 import com.restaurant.inventory.util.BillFormatter;
 import com.restaurant.inventory.util.DatabaseManager;
+import com.restaurant.inventory.util.FoodFactsClient;
 import com.restaurant.inventory.util.NetworkUtil;
+import com.restaurant.inventory.util.WeatherClient;
+import com.restaurant.inventory.util.WeatherSuggester;
 import javafx.beans.Observable;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
+import javafx.concurrent.WorkerStateEvent;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.time.DayOfWeek;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -93,6 +104,13 @@ public final class InventoryService {
     private final ReadOnlyStringWrapper stockAlert = new ReadOnlyStringWrapper();
     private final IntegerProperty stockVersion = new SimpleIntegerProperty(0);
     private final DoubleProperty todaysRevenue = new SimpleDoubleProperty(0);
+
+    // ---- live weather (Open-Meteo) -> weather offer. Both are null until the first fetch succeeds.
+    private final ObjectProperty<WeatherInfo> weather = new SimpleObjectProperty<>();
+    private final ObjectProperty<WeatherOffer> weatherOffer = new SimpleObjectProperty<>();
+    private boolean weatherLoading = false;
+    /** A weather deal is only honoured while the weather reading is this fresh. */
+    private static final Duration WEATHER_MAX_AGE = Duration.ofHours(3);
 
     /**
      * CONCURRENCY: a small thread pool shared by the whole app for anything that must not
@@ -179,8 +197,24 @@ public final class InventoryService {
         return DAILY_DISCOUNTS.get(LocalDate.now().getDayOfWeek());
     }
 
-    /** Discount percentage (0-100) that applies to this dish today. */
+    /**
+     * Discount percentage (0-100) that applies to this dish right now: the better of today's
+     * weekday promotion and the live weather deal (they are not stacked on top of each other).
+     */
     public int getDiscountPercent(Dish dish) {
+        return Math.max(getDailyDiscountPercent(dish), getWeatherDiscountPercent(dish));
+    }
+
+    /** Name of the promotion that gives this dish its discount (weekday promo or weather deal). */
+    public String getDiscountLabel(Dish dish) {
+        if (getWeatherDiscountPercent(dish) > getDailyDiscountPercent(dish)) {
+            return getActiveWeatherOffer().promoName();
+        }
+        return getTodayDiscountRule().promoName();
+    }
+
+    /** Percentage from the weekday promotion only (Burger Monday, Pizza Wednesday ...). */
+    private int getDailyDiscountPercent(Dish dish) {
         DiscountRule rule = getTodayDiscountRule();
         if (rule == null || dish == null) return 0;
         if (rule.category().equals(ALL_CATEGORIES)) {
@@ -214,6 +248,85 @@ public final class InventoryService {
         String today = LocalDate.now().getDayOfWeek().toString();
         today = today.charAt(0) + today.substring(1).toLowerCase();
         return String.format("%s (%s): %d%% OFF %s!", rule.promoName(), today, rule.percent(), target);
+    }
+
+    // ------------------------------------------------------------------ LIVE WEATHER (Open-Meteo) + WEATHER DEALS
+
+    public ReadOnlyObjectProperty<WeatherInfo> weatherProperty() { return weather; }
+    public WeatherInfo getWeather() { return weather.get(); }
+    public boolean isWeatherLoading() { return weatherLoading; }
+
+    /** The current weather deal, or null when the weather is unknown or the reading is too old. */
+    public WeatherOffer getActiveWeatherOffer() {
+        WeatherInfo info = weather.get();
+        WeatherOffer offer = weatherOffer.get();
+        if (info == null || offer == null) return null;
+        if (Duration.between(info.fetchedAt(), LocalDateTime.now()).compareTo(WEATHER_MAX_AGE) > 0) return null;
+        return offer;
+    }
+
+    /** Discount percentage the weather deal gives this dish (0 when it is not one of today's picks). */
+    public int getWeatherDiscountPercent(Dish dish) {
+        WeatherOffer offer = getActiveWeatherOffer();
+        if (offer == null || dish == null) return 0;
+        return offer.dishNames().contains(dish.getName()) ? offer.percent() : 0;
+    }
+
+    /** The suggested dishes that exist on the menu and can be cooked right now. */
+    public List<Dish> getWeatherPicks() {
+        WeatherOffer offer = getActiveWeatherOffer();
+        List<Dish> picks = new ArrayList<>();
+        if (offer == null) return picks;
+        for (String name : offer.dishNames()) {
+            Dish dish = findDish(name);
+            if (dish != null && dish.isAvailable()) picks.add(dish);
+        }
+        return picks;
+    }
+
+    /** Extra banner sentence such as "  |  Cool Down Deal: 12% OFF the suggested dishes" (empty when no deal). */
+    public String getWeatherBannerText() {
+        WeatherOffer offer = getActiveWeatherOffer();
+        return offer == null ? "" : String.format("   |   %s: %d%% OFF the weather picks", offer.promoName(), offer.percent());
+    }
+
+    /**
+     * NETWORKING: builds a background Task that asks Open-Meteo for Khulna's weather. The caller
+     * only has to add its own UI handlers and submit it to {@link #getExecutor()}; when the task
+     * succeeds THIS class stores the weather, builds the weather deal and tells every tab to repaint.
+     */
+    public Task<WeatherInfo> fetchWeatherTask() {
+        Task<WeatherInfo> task = new Task<>() {
+            @Override
+            protected WeatherInfo call() throws Exception {
+                updateMessage("Fetching Khulna weather...");
+                return WeatherClient.fetchKhulna();
+            }
+        };
+        weatherLoading = true;
+        task.addEventHandler(WorkerStateEvent.WORKER_STATE_SUCCEEDED, event -> {
+            weatherLoading = false;
+            WeatherInfo info = task.getValue();
+            weather.set(info);
+            weatherOffer.set(WeatherSuggester.suggest(info));
+            stockVersion.set(stockVersion.get() + 1);   // repaint prices / banners everywhere
+        });
+        task.addEventHandler(WorkerStateEvent.WORKER_STATE_FAILED, event -> weatherLoading = false);
+        task.addEventHandler(WorkerStateEvent.WORKER_STATE_CANCELLED, event -> weatherLoading = false);
+        return task;
+    }
+
+    // ------------------------------------------------------------------ NUTRITION (Open Food Facts)
+
+    /** NETWORKING: looks up an ingredient in Open Food Facts on a background thread (may take several seconds). */
+    public Task<FoodFactsClient.Nutrition> fetchNutritionTask(Ingredient ingredient) {
+        return new Task<>() {
+            @Override
+            protected FoodFactsClient.Nutrition call() throws Exception {
+                updateMessage("Searching Open Food Facts for " + ingredient.getName() + "...");
+                return FoodFactsClient.lookup(ingredient.getName());
+            }
+        };
     }
 
     // ------------------------------------------------------------------ ORDERS (customer + payment + bill)
@@ -264,6 +377,7 @@ public final class InventoryService {
 
         double subtotal = 0;
         double grandTotal = 0;
+        Map<String, Double> discountsByPromo = new LinkedHashMap<>();
         List<BillFormatter.Line> billLines = new ArrayList<>();
         List<String> itemParts = new ArrayList<>();
         for (CartLine line : cart) {
@@ -277,7 +391,11 @@ public final class InventoryService {
             }
             double fullPrice = dish.getPrice() * qty;
             subtotal += fullPrice;
-            grandTotal += getDiscountedPrice(dish) * qty;
+            double payableForLine = getDiscountedPrice(dish) * qty;
+            grandTotal += payableForLine;
+            if (fullPrice - payableForLine > 0.005) {
+                discountsByPromo.merge(getDiscountLabel(dish), fullPrice - payableForLine, Double::sum);
+            }
             billLines.add(new BillFormatter.Line(dish.getName(), qty, dish.getPrice(), fullPrice));
             itemParts.add(qty + " x " + dish.getName());
         }
@@ -290,7 +408,7 @@ public final class InventoryService {
         int id = DatabaseManager.insertOrder(customer, paymentMethod, items, grandTotal, Instant.now().toString());
         int billNo = id > 0 ? id : ++fallbackBillNo;
         String bill = BillFormatter.build(billNo, now, customer, paymentMethod, billLines,
-                getTodayDiscountRule().promoName(), subtotal, grandTotal);
+                discountsByPromo, subtotal, grandTotal);
         DatabaseManager.updateOrderBill(id, bill);
 
         OrderRecord record = new OrderRecord(billNo, customer, paymentMethod, items, grandTotal, now, bill);

@@ -34,6 +34,9 @@
     </center>
 
     <right>
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" prefWidth="345"
+                    style="-fx-background: transparent; -fx-background-color: transparent;">
+            <content>
         <VBox spacing="14" prefWidth="320">
             <padding>
                 <Insets left="14"/>
@@ -69,6 +72,20 @@
                 </content>
             </TitledPane>
 
+            <TitledPane text="Nutrition (Open Food Facts API)" collapsible="false">
+                <content>
+                    <VBox spacing="8">
+                        <padding>
+                            <Insets top="8" right="8" bottom="8" left="8"/>
+                        </padding>
+                        <Label text="Select an ingredient above, then look up its nutrition facts and allergens in the Open Food Facts database. The first lookup can take a few seconds." wrapText="true"/>
+                        <Button fx:id="nutritionButton" text="Look up nutrition" onAction="#onLookupNutrition"/>
+                        <Label fx:id="nutritionLabel" styleClass="info-label" wrapText="true"/>
+                        <Label text="Data: Open Food Facts contributors (ODbL). Values are for the closest matching product per 100 g - a guide only." wrapText="true" style="-fx-font-size: 10px; -fx-text-fill: #555555;"/>
+                    </VBox>
+                </content>
+            </TitledPane>
+
             <TitledPane text="Accumulate (ProgressBar)" collapsible="false">
                 <content>
                     <VBox spacing="8">
@@ -88,5 +105,7 @@
                 </content>
             </TitledPane>
         </VBox>
+            </content>
+        </ScrollPane>
     </right>
 </BorderPane>
